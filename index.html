@@ -6,12 +6,12 @@
 <title>HIGHLANDER Big Bear Lake 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<!-- Firebase compat (no bundler needed) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <script>
-  const firebaseConfig = {
+  firebase.initializeApp({
     apiKey:            "AIzaSyDhw-hdONjo22YsoxJ-4aLXt9854WIwagY",
     authDomain:        "highlander-b4875.firebaseapp.com",
     databaseURL:       "https://highlander-b4875-default-rtdb.firebaseio.com",
@@ -20,48 +20,84 @@
     messagingSenderId: "547927288536",
     appId:             "1:547927288536:web:9ecd745fc8fc86d9c505ad",
     measurementId:     "G-BWG56QFVQP"
-  };
+  });
 
-  firebase.initializeApp(firebaseConfig);
-  const db   = firebase.database();
-  const ROOT = "hl2026";
+  const auth     = firebase.auth();
+  const db       = firebase.database();
+  const ROOT     = "hl2026";
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  // ── Whitelist — add Alan & Kevin's Gmail when ready ──────────
+  const ALLOWED = {
+    "jonathanholman@gmail.com": "j",
+    // "alans.email@gmail.com":  "a",   ← uncomment + fill in
+    // "kevins.email@gmail.com": "k",   ← uncomment + fill in
+  };
+  // ─────────────────────────────────────────────────────────────
+
   let remoteChecks = {};
   let localPerson  = null;
 
   window.__fb = {
     toggle(key) {
-      if (!localPerson) { document.getElementById("personModal").style.display="flex"; return; }
+      if (!localPerson) return;
       const current = !!((remoteChecks[localPerson] || {})[key]);
       db.ref(ROOT + "/" + localPerson + "/" + key).set(!current);
     },
     isChecked(person, key) {
       return !!((remoteChecks[person] || {})[key]);
     },
-    setPerson(p) {
-      localPerson = p;
-      localStorage.setItem("hl_person", p);
-      document.getElementById("personModal").style.display = "none";
-      document.getElementById("personBadge").textContent =
-        p === "j" ? "🔵 Jonathan" : p === "a" ? "🟣 Alan" : "🟠 Kevin";
-      const dot = document.getElementById("syncDot");
-      const txt = document.getElementById("syncText");
-      if (dot) { dot.className = "ok"; txt.textContent = "Live sync active"; }
-      render();
-    },
     getPerson() { return localPerson; }
   };
 
-  // Live listener — re-renders whenever any hiker checks/unchecks
-  db.ref(ROOT).on("value", snap => {
-    remoteChecks = snap.val() || {};
-    if (typeof render === "function") render();
+  window.signInWithGoogle = function() {
+    auth.signInWithPopup(provider).catch(err => {
+      console.error("Sign-in error:", err);
+    });
+  };
+
+  window.signOut = function() {
+    auth.signOut();
+  };
+
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      showScreen("login");
+      return;
+    }
+
+    const email = user.email.toLowerCase();
+    const person = ALLOWED[email];
+
+    if (!person) {
+      // Signed in but not on the list
+      document.getElementById("deniedEmail").textContent = user.email;
+      showScreen("denied");
+      return;
+    }
+
+    // Authenticated & authorized
+    localPerson = person;
+    document.getElementById("userEmail").textContent = user.email;
+    document.getElementById("personBadge").textContent =
+      person === "j" ? "🔵 Jonathan" :
+      person === "a" ? "🟣 Alan" : "🟠 Kevin";
+
+    // Start DB listener
+    db.ref(ROOT).on("value", snap => {
+      remoteChecks = snap.val() || {};
+      if (typeof render === "function") render();
+    });
+
+    showScreen("app");
   });
 
-  window.addEventListener("DOMContentLoaded", () => {
-    const saved = localStorage.getItem("hl_person");
-    if (saved) window.__fb.setPerson(saved);
-    else document.getElementById("personModal").style.display = "flex";
-  });
+  function showScreen(name) {
+    ["login","denied","app"].forEach(id => {
+      const el = document.getElementById("screen-" + id);
+      if (el) el.style.display = (id === name) ? "" : "none";
+    });
+  }
 </script>
 
 <style>
@@ -80,17 +116,28 @@
   body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
   .mono{font-family:'JetBrains Mono',monospace}
 
-  /* Modal */
-  #personModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
-  .modal-box{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:32px 28px;max-width:340px;width:90%;text-align:center}
-  .modal-box h2{color:var(--accent);font-size:20px;margin-bottom:8px}
-  .modal-box p{color:var(--muted);font-size:13px;margin-bottom:24px;line-height:1.5}
-  .person-btns{display:flex;flex-direction:column;gap:10px}
-  .person-btn{padding:12px 20px;border-radius:10px;border:2px solid;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter .2s}
-  .person-btn:hover{filter:brightness(1.2)}
-  .person-btn.j{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
-  .person-btn.a{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
-  .person-btn.k{background:var(--orange-bg);border-color:var(--orange);color:var(--orange)}
+  /* ── Login screen ── */
+  #screen-login{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:0;background:linear-gradient(135deg,#0a1a0f,#0f2517 50%,#0a1a0f)}
+  .login-box{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:48px 40px;max-width:380px;width:90%;text-align:center}
+  .login-logo{font-size:48px;margin-bottom:16px}
+  .login-box h1{font-size:22px;font-weight:700;color:var(--accent);letter-spacing:-.5px;margin-bottom:6px}
+  .login-box p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:32px}
+  .google-btn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#1f1f1f;border:none;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:box-shadow .2s;width:100%;justify-content:center}
+  .google-btn:hover{box-shadow:0 2px 12px rgba(255,255,255,.15)}
+  .google-btn svg{flex-shrink:0}
+  .login-note{color:var(--dim);font-size:11px;margin-top:16px}
+
+  /* ── Denied screen ── */
+  #screen-denied{display:none;min-height:100vh;align-items:center;justify-content:center;background:var(--bg)}
+  .denied-box{background:var(--card);border:1px solid rgba(248,113,113,.3);border-radius:20px;padding:40px;max-width:360px;width:90%;text-align:center}
+  .denied-box h2{color:var(--danger);font-size:18px;margin-bottom:10px}
+  .denied-box p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:6px}
+  #deniedEmail{color:var(--text);font-weight:600}
+  .denied-btn{margin-top:24px;padding:10px 20px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit}
+  .denied-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* ── App screen ── */
+  #screen-app{display:none}
 
   /* Header */
   .header{background:linear-gradient(135deg,#0f2517,#1a3a25 50%,#0d3320);border-bottom:1px solid var(--border);padding:20px 16px 14px}
@@ -98,12 +145,12 @@
   .header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .header h1{font-size:20px;font-weight:700;color:var(--accent);letter-spacing:-.5px}
   .header-sub{color:var(--muted);font-size:12px;margin-top:3px}
-  #personBadge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;white-space:nowrap;flex-shrink:0;color:var(--text)}
-  #personBadge:hover{border-color:var(--accent);color:var(--accent)}
-  #syncStatus{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px;margin-top:5px}
-  #syncDot{width:7px;height:7px;border-radius:50%;background:var(--warn);flex-shrink:0}
-  #syncDot.ok{background:var(--accent)}
-  #syncDot.err{background:var(--danger)}
+  .header-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+  #personBadge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);white-space:nowrap;color:var(--text)}
+  .signout-row{display:flex;align-items:center;gap:8px}
+  #userEmail{font-size:10px;color:var(--dim)}
+  .signout-btn{font-size:10px;color:var(--dim);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;text-decoration:underline}
+  .signout-btn:hover{color:var(--danger)}
   .stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .stat{background:rgba(74,222,128,.08);border:1px solid var(--border);border-radius:7px;padding:3px 9px;font-size:11px}
   .stat span{color:var(--dim)} .stat b{color:var(--accent)}
@@ -203,46 +250,61 @@
 </head>
 <body>
 
-<!-- Who are you? -->
-<div id="personModal">
-  <div class="modal-box">
-    <h2>⛰️ Who are you?</h2>
-    <p>Your choice is saved in this browser. You can only check your own column, but you'll see everyone's status live.</p>
-    <div class="person-btns">
-      <button class="person-btn j" onclick="window.__fb.setPerson('j')">🔵 Jonathan</button>
-      <button class="person-btn a" onclick="window.__fb.setPerson('a')">🟣 Alan</button>
-      <button class="person-btn k" onclick="window.__fb.setPerson('k')">🟠 Kevin</button>
-    </div>
+<!-- ── Login screen ── -->
+<div id="screen-login" style="display:flex">
+  <div class="login-box">
+    <div class="login-logo">⛰️</div>
+    <h1>HIGHLANDER 2026</h1>
+    <p>Big Bear Lake · Jun 20–29<br>Ursa Major 5-Day Trek<br><br>Sign in with your Google account to access the trip tracker.</p>
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="login-note">Only authorized trip members can access this page.</div>
   </div>
 </div>
 
-<!-- Header -->
-<div class="header"><div class="header-inner">
-  <div class="header-top">
-    <div>
-      <h1>⛰️ HIGHLANDER Big Bear Lake 2026</h1>
-      <div class="header-sub">Jun 20–29 · Ursa Major 5-Day Trek · San Bernardino Mountains</div>
-    </div>
-    <div>
-      <div id="personBadge" onclick="document.getElementById('personModal').style.display='flex'">👤 Select hiker</div>
-      <div id="syncStatus"><span id="syncDot"></span><span id="syncText">Connecting…</span></div>
-    </div>
+<!-- ── Access denied screen ── -->
+<div id="screen-denied" style="display:none;min-height:100vh;display:none;align-items:center;justify-content:center">
+  <div class="denied-box">
+    <h2>🚫 Access Denied</h2>
+    <p>The account <strong><span id="deniedEmail"></span></strong> is not on the trip roster.</p>
+    <p style="margin-top:8px">Contact Jonathan if you think this is a mistake.</p>
+    <button class="denied-btn" onclick="signOut()">Sign out and try another account</button>
   </div>
-  <div class="stats">
-    <div class="stat"><span>Trek </span><b>Jun 23–27</b></div>
-    <div class="stat"><span>Elev. </span><b>7,000 ft</b></div>
-    <div class="stat"><span>Temps </span><b>40s–80s°F</b></div>
-    <div class="stat"><span>Pack </span><b>33–37 lbs</b></div>
-  </div>
-  <div class="hikers">
-    <div class="hchip j">🔵 Jonathan — PIT · XL</div>
-    <div class="hchip a">🟣 Alan — PIT · S/M</div>
-    <div class="hchip k">🟠 Kevin — MCI · Jun 22–28</div>
-  </div>
-</div></div>
+</div>
 
-<div class="tab-bar"><div class="tab-bar-inner" id="tabBar"></div></div>
-<div class="content" id="content"></div>
+<!-- ── App screen ── -->
+<div id="screen-app" style="display:none">
+  <div class="header"><div class="header-inner">
+    <div class="header-top">
+      <div>
+        <h1>⛰️ HIGHLANDER Big Bear Lake 2026</h1>
+        <div class="header-sub">Jun 20–29 · Ursa Major 5-Day Trek · San Bernardino Mountains</div>
+      </div>
+      <div class="header-right">
+        <div id="personBadge"></div>
+        <div class="signout-row">
+          <span id="userEmail"></span>
+          <button class="signout-btn" onclick="signOut()">sign out</button>
+        </div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Trek </span><b>Jun 23–27</b></div>
+      <div class="stat"><span>Elev. </span><b>7,000 ft</b></div>
+      <div class="stat"><span>Temps </span><b>40s–80s°F</b></div>
+      <div class="stat"><span>Pack </span><b>33–37 lbs</b></div>
+    </div>
+    <div class="hikers">
+      <div class="hchip j">🔵 Jonathan — PIT · XL</div>
+      <div class="hchip a">🟣 Alan — PIT · S/M</div>
+      <div class="hchip k">🟠 Kevin — MCI · Jun 22–28</div>
+    </div>
+  </div></div>
+  <div class="tab-bar"><div class="tab-bar-inner" id="tabBar"></div></div>
+  <div class="content" id="content"></div>
+</div>
 
 <script>
 const TABS=["Timeline","Gear","Lodging & Travel","Checklist","Pull from Home","Notes & Gaps"];
@@ -252,7 +314,6 @@ function esc(s){const d=document.createElement('div');d.textContent=s;return d.i
 function badge(c,t){return'<span class="badge '+c+'">'+esc(t)+'</span>'}
 function whoBadge(w){if(!w||w==='—')return'';if(w==='Jonathan')return badge('bb',w);if(w==='Alan')return badge('bp',w);if(w==='Kevin')return badge('bo',w);if(w==='Shared')return badge('bgr',w);return badge('bg',w)}
 function appliesTo(a){if(a==='all'||a==='shared')return[1,1,1];if(a==='ja')return[1,1,0];if(a==='j')return[1,0,0];if(a==='a')return[0,1,0];if(a==='k')return[0,0,1];return[1,1,1]}
-
 const PKEYS=['j','a','k'];
 const PCLS=['other-j','other-a','other-k'];
 
@@ -262,7 +323,7 @@ function cbHTML(key,pidx,ok){
   const isMe=(me===PKEYS[pidx]);
   const checked=window.__fb?window.__fb.isChecked(PKEYS[pidx],key):false;
   let cls='cb';
-  if(checked) cls+=' '+(isMe?'mine':PCLS[pidx]);
+  if(checked)cls+=' '+(isMe?'mine':PCLS[pidx]);
   const click=isMe?'onclick="window.__fb.toggle(\''+key.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')"':'';
   const cur=isMe?'':'cursor:default';
   return'<div class="cl-cell"><div class="'+cls+'" '+click+' style="'+cur+'"><span class="ck">✓</span></div></div>';
@@ -275,8 +336,6 @@ function clRow(key,item,showM){
 }
 function clCount(pfx,list){let t=0,d=0;list.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],pfx+i))d++;}})});return{total:t,done:d}}
 function pfhCount(){let t=0,d=0;PFH.forEach(cat=>{cat.items.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],'pfh-'+cat.id+'-'+i))d++;}})})});return{total:t,done:d}}
-
-// ── Data ──────────────────────────────────────────────────────────────────────
 
 const TL=[
 {date:"Sat, Jun 20",label:"Travel Day — PIT → LAX",items:[
@@ -498,7 +557,6 @@ const GAPS=[
 {type:"warn",text:"Jun 29: UA2039 at 9 AM. Leave AC Hotel ~6:30 AM. Pack night before."},
 ];
 
-// ── Render ────────────────────────────────────────────────────────────────────
 function render(){
   const cl=clCount('cl-',CL),pf=pfhCount();
   let th='';
@@ -509,11 +567,10 @@ function render(){
     th+='<button class="tab-btn'+(i===activeTab?' active':'')+'" onclick="switchTab('+i+')">'+l+'</button>';
   });
   document.getElementById('tabBar').innerHTML=th;
-
   let h='';
 
   if(activeTab===0){
-    h+='<p class="intro">Day-by-day travel. 🛣️ lines show driving segments with distance/time.</p>';
+    h+='<p class="intro">Day-by-day travel. 🛣️ lines show driving segments.</p>';
     TL.forEach(day=>{
       h+='<div class="tl-day"><div class="tl-day-hdr">📅 '+esc(day.date)+' — '+esc(day.label)+'</div>';
       day.items.forEach(it=>{
@@ -528,29 +585,20 @@ function render(){
       h+='</div>';
     });
   }
-
   if(activeTab===1){
     h+='<p class="intro">Gear for Jonathan & Alan. Kevin\'s loadout TBD.</p>';
     GEAR.forEach(cat=>{
       h+='<div class="gear-cat"><div class="gear-cat-hdr">'+esc(cat.name)+'</div>';
-      cat.items.forEach(g=>{
-        h+='<div class="gear-row"><div style="flex:1;min-width:0"><div>'+esc(g.item)+'</div>'+(g.note?'<div class="gear-note">'+esc(g.note)+'</div>':'')+'</div><div class="gear-right">'+whoBadge(g.who)+' <span class="gear-src">'+esc(g.src)+'</span> '+badge(g.s==='processing'?'by':'bg',g.s)+'</div></div>';
-      });
+      cat.items.forEach(g=>{h+='<div class="gear-row"><div style="flex:1;min-width:0"><div>'+esc(g.item)+'</div>'+(g.note?'<div class="gear-note">'+esc(g.note)+'</div>':'')+'</div><div class="gear-right">'+whoBadge(g.who)+' <span class="gear-src">'+esc(g.src)+'</span> '+badge(g.s==='processing'?'by':'bg',g.s)+'</div></div>'});
       h+='</div>';
     });
   }
-
   if(activeTab===2){
     h+='<div class="sec-title">🏨 Lodging</div>';
-    LODGING.forEach(l=>{
-      h+='<div class="lcard"><div class="lcard-hd"><div><div class="lcard-name">'+esc(l.name)+'</div><div class="lcard-room">'+esc(l.dates)+' · '+esc(l.room)+'</div></div><div style="text-align:right"><div class="lcard-cost mono">'+esc(l.cost)+'</div><div class="lcard-conf">Conf: '+esc(l.conf)+'</div></div></div>'+(l.who?'<div style="margin-top:4px">'+badge('bg',l.who)+'</div>':'')+(l.checkin?'<div class="lcard-times">In '+esc(l.checkin)+' · Out '+esc(l.checkout)+'</div>':'')+'<div class="lcard-notes">'+esc(l.notes)+'</div></div>';
-    });
+    LODGING.forEach(l=>{h+='<div class="lcard"><div class="lcard-hd"><div><div class="lcard-name">'+esc(l.name)+'</div><div class="lcard-room">'+esc(l.dates)+' · '+esc(l.room)+'</div></div><div style="text-align:right"><div class="lcard-cost mono">'+esc(l.cost)+'</div><div class="lcard-conf">Conf: '+esc(l.conf)+'</div></div></div>'+(l.who?'<div style="margin-top:4px">'+badge('bg',l.who)+'</div>':'')+(l.checkin?'<div class="lcard-times">In '+esc(l.checkin)+' · Out '+esc(l.checkout)+'</div>':'')+'<div class="lcard-notes">'+esc(l.notes)+'</div></div>'});
     h+='<div class="sec-title mt">✈️ 🚗 Transportation</div>';
-    TRAV.forEach(t=>{
-      h+='<div class="lcard"><div class="lcard-name">'+esc(t.type)+' '+esc(t.label)+'</div><div class="lcard-room">'+esc(t.date)+'</div><div style="font-size:13px;margin-top:4px">'+esc(t.detail)+'</div><div class="lcard-conf" style="margin-top:2px">Conf: '+esc(t.conf)+'</div><div class="lcard-notes">'+esc(t.notes)+'</div></div>';
-    });
+    TRAV.forEach(t=>{h+='<div class="lcard"><div class="lcard-name">'+esc(t.type)+' '+esc(t.label)+'</div><div class="lcard-room">'+esc(t.date)+'</div><div style="font-size:13px;margin-top:4px">'+esc(t.detail)+'</div><div class="lcard-conf" style="margin-top:2px">Conf: '+esc(t.conf)+'</div><div class="lcard-notes">'+esc(t.notes)+'</div></div>'});
   }
-
   if(activeTab===3){
     h+='<p class="intro">Check your own column. Others\' checks appear in their color live.</p>';
     h+='<div class="badge-row">'+badge('bg',cl.done+' checked')+' '+badge('bgr',(cl.total-cl.done)+' remaining')+'</div>';
@@ -560,7 +608,6 @@ function render(){
     h+='<div class="cl-cat-hdr normal" style="margin-top:14px">🟢 Recommended</div>';
     CL.forEach((g,i)=>{if(!g.mandatory)h+=clRow('cl-'+i,g,false)});
   }
-
   if(activeTab===4){
     h+='<p class="intro">Items from home or to buy. Check your column as you set things aside.</p>';
     h+='<div class="badge-row">'+badge('bg',pf.done+' set aside')+' '+badge('bgr',(pf.total-pf.done)+' remaining')+'</div>';
@@ -573,7 +620,6 @@ function render(){
       });
     });
   }
-
   if(activeTab===5){
     h+='<p class="intro">Action items and confirmed info.</p>';
     h+='<h3 class="st wn">⚠️ Action Items</h3>';
