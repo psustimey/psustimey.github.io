@@ -8,6 +8,7 @@
 
 <!-- Firebase compat (no bundler needed) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <script>
@@ -23,14 +24,37 @@
   };
 
   firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
   const db   = firebase.database();
   const ROOT = "hl2026";
   let remoteChecks = {};
   let localPerson  = null;
+  let currentUID   = null;
+
+  // Sign in anonymously — every browser gets a persistent UID
+  auth.signInAnonymously().catch(err => {
+    console.error("Auth error:", err);
+    document.getElementById("uidText").textContent = "Auth failed: " + err.message;
+  });
+
+  auth.onAuthStateChanged(user => {
+    if (!user) return;
+    currentUID = user.uid;
+
+    // Show UID bar
+    document.getElementById("uidText").textContent = user.uid;
+
+    // Start DB listener now that we're authenticated
+    db.ref(ROOT).on("value", snap => {
+      remoteChecks = snap.val() || {};
+      if (typeof render === "function") render();
+    });
+  });
 
   window.__fb = {
     toggle(key) {
       if (!localPerson) { document.getElementById("personModal").style.display="flex"; return; }
+      if (!currentUID)  { console.warn("Not authenticated yet"); return; }
       const current = !!((remoteChecks[localPerson] || {})[key]);
       db.ref(ROOT + "/" + localPerson + "/" + key).set(!current);
     },
@@ -50,12 +74,6 @@
     },
     getPerson() { return localPerson; }
   };
-
-  // Live listener — re-renders whenever any hiker checks/unchecks
-  db.ref(ROOT).on("value", snap => {
-    remoteChecks = snap.val() || {};
-    if (typeof render === "function") render();
-  });
 
   window.addEventListener("DOMContentLoaded", () => {
     const saved = localStorage.getItem("hl_person");
@@ -79,6 +97,13 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
   .mono{font-family:'JetBrains Mono',monospace}
+
+  /* UID banner — temporary, remove in Phase 2 */
+  #uidBanner{background:#1a1a2e;border-bottom:1px solid #2d2d5a;padding:8px 16px;font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  #uidBanner strong{color:#fbbf24}
+  #uidText{font-family:'JetBrains Mono',monospace;font-size:11px;color:#e2e8f0;background:#0f0f1a;padding:2px 8px;border-radius:4px;border:1px solid #2d2d5a;user-select:all;cursor:text}
+  #copyUid{padding:2px 8px;border-radius:4px;border:1px solid #2d5a3a;background:rgba(74,222,128,.1);color:#4ade80;font-size:11px;cursor:pointer;font-family:inherit}
+  #copyUid:hover{background:rgba(74,222,128,.2)}
 
   /* Modal */
   #personModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
@@ -203,6 +228,14 @@
 </head>
 <body>
 
+<!-- UID banner — TEMPORARY, removed in Phase 2 -->
+<div id="uidBanner">
+  <strong>⚠️ SETUP:</strong>
+  <span>Your browser UID (send this to Jonathan):</span>
+  <span id="uidText">Authenticating…</span>
+  <button id="copyUid" onclick="navigator.clipboard.writeText(document.getElementById('uidText').textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button>
+</div>
+
 <!-- Who are you? -->
 <div id="personModal">
   <div class="modal-box">
@@ -262,7 +295,7 @@ function cbHTML(key,pidx,ok){
   const isMe=(me===PKEYS[pidx]);
   const checked=window.__fb?window.__fb.isChecked(PKEYS[pidx],key):false;
   let cls='cb';
-  if(checked) cls+=' '+(isMe?'mine':PCLS[pidx]);
+  if(checked)cls+=' '+(isMe?'mine':PCLS[pidx]);
   const click=isMe?'onclick="window.__fb.toggle(\''+key.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')"':'';
   const cur=isMe?'':'cursor:default';
   return'<div class="cl-cell"><div class="'+cls+'" '+click+' style="'+cur+'"><span class="ck">✓</span></div></div>';
@@ -275,8 +308,6 @@ function clRow(key,item,showM){
 }
 function clCount(pfx,list){let t=0,d=0;list.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],pfx+i))d++;}})});return{total:t,done:d}}
 function pfhCount(){let t=0,d=0;PFH.forEach(cat=>{cat.items.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],'pfh-'+cat.id+'-'+i))d++;}})})});return{total:t,done:d}}
-
-// ── Data ──────────────────────────────────────────────────────────────────────
 
 const TL=[
 {date:"Sat, Jun 20",label:"Travel Day — PIT → LAX",items:[
@@ -498,7 +529,6 @@ const GAPS=[
 {type:"warn",text:"Jun 29: UA2039 at 9 AM. Leave AC Hotel ~6:30 AM. Pack night before."},
 ];
 
-// ── Render ────────────────────────────────────────────────────────────────────
 function render(){
   const cl=clCount('cl-',CL),pf=pfhCount();
   let th='';
@@ -509,11 +539,10 @@ function render(){
     th+='<button class="tab-btn'+(i===activeTab?' active':'')+'" onclick="switchTab('+i+')">'+l+'</button>';
   });
   document.getElementById('tabBar').innerHTML=th;
-
   let h='';
 
   if(activeTab===0){
-    h+='<p class="intro">Day-by-day travel. 🛣️ lines show driving segments with distance/time.</p>';
+    h+='<p class="intro">Day-by-day travel. 🛣️ lines show driving segments.</p>';
     TL.forEach(day=>{
       h+='<div class="tl-day"><div class="tl-day-hdr">📅 '+esc(day.date)+' — '+esc(day.label)+'</div>';
       day.items.forEach(it=>{
@@ -528,29 +557,20 @@ function render(){
       h+='</div>';
     });
   }
-
   if(activeTab===1){
     h+='<p class="intro">Gear for Jonathan & Alan. Kevin\'s loadout TBD.</p>';
     GEAR.forEach(cat=>{
       h+='<div class="gear-cat"><div class="gear-cat-hdr">'+esc(cat.name)+'</div>';
-      cat.items.forEach(g=>{
-        h+='<div class="gear-row"><div style="flex:1;min-width:0"><div>'+esc(g.item)+'</div>'+(g.note?'<div class="gear-note">'+esc(g.note)+'</div>':'')+'</div><div class="gear-right">'+whoBadge(g.who)+' <span class="gear-src">'+esc(g.src)+'</span> '+badge(g.s==='processing'?'by':'bg',g.s)+'</div></div>';
-      });
+      cat.items.forEach(g=>{h+='<div class="gear-row"><div style="flex:1;min-width:0"><div>'+esc(g.item)+'</div>'+(g.note?'<div class="gear-note">'+esc(g.note)+'</div>':'')+'</div><div class="gear-right">'+whoBadge(g.who)+' <span class="gear-src">'+esc(g.src)+'</span> '+badge(g.s==='processing'?'by':'bg',g.s)+'</div></div>'});
       h+='</div>';
     });
   }
-
   if(activeTab===2){
     h+='<div class="sec-title">🏨 Lodging</div>';
-    LODGING.forEach(l=>{
-      h+='<div class="lcard"><div class="lcard-hd"><div><div class="lcard-name">'+esc(l.name)+'</div><div class="lcard-room">'+esc(l.dates)+' · '+esc(l.room)+'</div></div><div style="text-align:right"><div class="lcard-cost mono">'+esc(l.cost)+'</div><div class="lcard-conf">Conf: '+esc(l.conf)+'</div></div></div>'+(l.who?'<div style="margin-top:4px">'+badge('bg',l.who)+'</div>':'')+(l.checkin?'<div class="lcard-times">In '+esc(l.checkin)+' · Out '+esc(l.checkout)+'</div>':'')+'<div class="lcard-notes">'+esc(l.notes)+'</div></div>';
-    });
+    LODGING.forEach(l=>{h+='<div class="lcard"><div class="lcard-hd"><div><div class="lcard-name">'+esc(l.name)+'</div><div class="lcard-room">'+esc(l.dates)+' · '+esc(l.room)+'</div></div><div style="text-align:right"><div class="lcard-cost mono">'+esc(l.cost)+'</div><div class="lcard-conf">Conf: '+esc(l.conf)+'</div></div></div>'+(l.who?'<div style="margin-top:4px">'+badge('bg',l.who)+'</div>':'')+(l.checkin?'<div class="lcard-times">In '+esc(l.checkin)+' · Out '+esc(l.checkout)+'</div>':'')+'<div class="lcard-notes">'+esc(l.notes)+'</div></div>'});
     h+='<div class="sec-title mt">✈️ 🚗 Transportation</div>';
-    TRAV.forEach(t=>{
-      h+='<div class="lcard"><div class="lcard-name">'+esc(t.type)+' '+esc(t.label)+'</div><div class="lcard-room">'+esc(t.date)+'</div><div style="font-size:13px;margin-top:4px">'+esc(t.detail)+'</div><div class="lcard-conf" style="margin-top:2px">Conf: '+esc(t.conf)+'</div><div class="lcard-notes">'+esc(t.notes)+'</div></div>';
-    });
+    TRAV.forEach(t=>{h+='<div class="lcard"><div class="lcard-name">'+esc(t.type)+' '+esc(t.label)+'</div><div class="lcard-room">'+esc(t.date)+'</div><div style="font-size:13px;margin-top:4px">'+esc(t.detail)+'</div><div class="lcard-conf" style="margin-top:2px">Conf: '+esc(t.conf)+'</div><div class="lcard-notes">'+esc(t.notes)+'</div></div>'});
   }
-
   if(activeTab===3){
     h+='<p class="intro">Check your own column. Others\' checks appear in their color live.</p>';
     h+='<div class="badge-row">'+badge('bg',cl.done+' checked')+' '+badge('bgr',(cl.total-cl.done)+' remaining')+'</div>';
@@ -560,7 +580,6 @@ function render(){
     h+='<div class="cl-cat-hdr normal" style="margin-top:14px">🟢 Recommended</div>';
     CL.forEach((g,i)=>{if(!g.mandatory)h+=clRow('cl-'+i,g,false)});
   }
-
   if(activeTab===4){
     h+='<p class="intro">Items from home or to buy. Check your column as you set things aside.</p>';
     h+='<div class="badge-row">'+badge('bg',pf.done+' set aside')+' '+badge('bgr',(pf.total-pf.done)+' remaining')+'</div>';
@@ -573,7 +592,6 @@ function render(){
       });
     });
   }
-
   if(activeTab===5){
     h+='<p class="intro">Action items and confirmed info.</p>';
     h+='<h3 class="st wn">⚠️ Action Items</h3>';
