@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIGHLANDER Big Bear Lake 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     STEP 1: CREATE A FIREBASE PROJECT
+     console.firebase.google.com → New project → Realtime Database
+     (Start in test mode) → Web app → copy firebaseConfig below
+
+     STEP 2: REPLACE the placeholder config object below with yours
+     ============================================================ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ▼▼▼ PASTE YOUR FIREBASE CONFIG HERE ▼▼▼
+  const firebaseConfig = {
+  apiKey: "AIzaSyDhw-hdONjo22YsoxJ-4aLXt9854WIwagY",
+  authDomain: "highlander-b4875.firebaseapp.com",
+  projectId: "highlander-b4875",
+  storageBucket: "highlander-b4875.firebasestorage.app",
+  messagingSenderId: "547927288536",
+  appId: "1:547927288536:web:2abb910ffae49457c505ad",
+  measurementId: "G-CZXFFT7VTJ"
+};
+  // ▲▲▲ END CONFIG ▲▲▲
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  const ROOT = "hl2026";          // all data lives under this key
+  let remoteChecks = {};          // latest snapshot from Firebase
+  let localPerson  = null;        // which hiker is using this browser
+
+  // ── Expose to non-module scripts ──────────────────────────────
+  window.__fb = {
+    toggle(key) {
+      if (!localPerson) { showPersonModal(); return; }
+      const fullKey = localPerson + "/" + key;
+      const next = !((remoteChecks[localPerson] || {})[key]);
+      const patch = {};
+      patch[ROOT + "/" + fullKey] = next;
+      update(ref(db), patch);
+    },
+    isChecked(person, key) {
+      return !!((remoteChecks[person] || {})[key]);
+    },
+    setPerson(p) {
+      localPerson = p;
+      localStorage.setItem("hl_person", p);
+      document.getElementById("personModal").style.display = "none";
+      document.getElementById("personBadge").textContent =
+        p === "j" ? "🔵 Jonathan" : p === "a" ? "🟣 Alan" : "🟠 Kevin";
+      render();
+    },
+    getPerson() { return localPerson; }
+  };
+
+  // ── Subscribe to Firebase ─────────────────────────────────────
+  onValue(ref(db, ROOT), snap => {
+    remoteChecks = snap.val() || {};
+    render();
+  });
+
+  // ── Init person from localStorage ────────────────────────────
+  window.addEventListener("DOMContentLoaded", () => {
+    const saved = localStorage.getItem("hl_person");
+    if (saved) window.__fb.setPerson(saved);
+    else showPersonModal();
+  });
+
+  function showPersonModal() {
+    document.getElementById("personModal").style.display = "flex";
+  }
+</script>
+
+<style>
+  :root {
+    --bg:#0a1a0f; --card:#0f2517; --card2:#132e1c;
+    --accent:#4ade80; --accent-m:rgba(74,222,128,.15);
+    --warn:#fbbf24; --warn-bg:rgba(251,191,36,.12);
+    --danger:#f87171; --danger-bg:rgba(248,113,113,.10);
+    --text:#e2e8f0; --muted:#94a3b8; --dim:#64748b;
+    --border:#1e3a27; --border2:#2d5a3a;
+    --blue:#60a5fa; --blue-bg:rgba(96,165,250,.15);
+    --purple:#a78bfa; --purple-bg:rgba(167,139,250,.12);
+    --orange:#fb923c; --orange-bg:rgba(251,146,60,.12);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* ── Person modal ── */
+  #personModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+  .modal-box{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:32px 28px;max-width:340px;width:90%;text-align:center}
+  .modal-box h2{color:var(--accent);font-size:20px;margin-bottom:8px}
+  .modal-box p{color:var(--muted);font-size:13px;margin-bottom:24px}
+  .person-btns{display:flex;flex-direction:column;gap:10px}
+  .person-btn{padding:12px 20px;border-radius:10px;border:2px solid;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+  .person-btn.j{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
+  .person-btn.a{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+  .person-btn.k{background:var(--orange-bg);border-color:var(--orange);color:var(--orange)}
+  .person-btn:hover{filter:brightness(1.15)}
+
+  /* ── Header ── */
+  .header{background:linear-gradient(135deg,#0f2517,#1a3a25 50%,#0d3320);border-bottom:1px solid var(--border);padding:20px 16px 14px}
+  .header-inner{max-width:980px;margin:0 auto}
+  .header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .header h1{font-size:20px;font-weight:700;color:var(--accent);letter-spacing:-.5px}
+  .header-sub{color:var(--muted);font-size:12px;margin-top:3px}
+  #personBadge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;white-space:nowrap;flex-shrink:0}
+  #personBadge:hover{border-color:var(--accent);color:var(--accent)}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .stat{background:rgba(74,222,128,.08);border:1px solid var(--border);border-radius:7px;padding:3px 9px;font-size:11px}
+  .stat span{color:var(--dim)} .stat b{color:var(--accent)}
+  .hikers{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .hchip{border-radius:7px;padding:4px 10px;font-size:11px;border:1px solid}
+  .hchip.j{background:var(--blue-bg);border-color:rgba(96,165,250,.3);color:var(--blue)}
+  .hchip.a{background:var(--purple-bg);border-color:rgba(167,139,250,.3);color:var(--purple)}
+  .hchip.k{background:var(--orange-bg);border-color:rgba(251,146,60,.3);color:var(--orange)}
+
+  /* ── Tabs ── */
+  .tab-bar{background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+  .tab-bar-inner{max-width:980px;margin:0 auto;display:flex}
+  .tab-btn{background:transparent;border:none;color:var(--dim);font-weight:500;font-size:12px;padding:11px 13px;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit;transition:all .2s;white-space:nowrap}
+  .tab-btn.active{color:var(--accent);font-weight:700;border-bottom-color:var(--accent)}
+
+  /* ── Content ── */
+  .content{max-width:980px;margin:0 auto;padding:18px 14px 60px}
+  p.intro{color:var(--muted);font-size:13px;margin-bottom:14px}
+
+  /* ── Badge ── */
+  .badge{padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap;display:inline-block}
+  .bg{background:var(--accent-m);color:var(--accent)}
+  .by{background:var(--warn-bg);color:var(--warn)}
+  .br{background:var(--danger-bg);color:var(--danger)}
+  .bgr{background:rgba(148,163,184,.15);color:var(--muted)}
+  .bb{background:var(--blue-bg);color:var(--blue)}
+  .bp{background:var(--purple-bg);color:var(--purple)}
+  .bo{background:var(--orange-bg);color:var(--orange)}
+
+  /* ── Timeline ── */
+  .tl-day{margin-bottom:18px}
+  .tl-day-hdr{font-size:13px;font-weight:700;color:var(--accent);padding:7px 0;border-bottom:1px solid var(--border);margin-bottom:8px}
+  .tl-card{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:7px}
+  .tl-card-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+  .tl-title{font-weight:700;font-size:13px}
+  .tl-sub{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5}
+  .tl-conf{font-size:10px;color:var(--dim);margin-top:2px}
+  .tl-notes{font-size:12px;color:var(--warn);margin-top:3px;line-height:1.5}
+  .tl-drive{background:rgba(74,222,128,.05);border:1px dashed var(--border2);border-radius:7px;padding:7px 12px;margin-bottom:7px;font-size:12px;color:var(--muted)}
+
+  /* ── Lodging / Travel ── */
+  .lcard{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:9px}
+  .lcard-hd{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px}
+  .lcard-name{font-size:13px;font-weight:700}
+  .lcard-room{font-size:12px;color:var(--muted);margin-top:2px}
+  .lcard-cost{color:var(--accent);font-weight:600;font-size:12px;text-align:right}
+  .lcard-conf{color:var(--dim);font-size:10px;margin-top:1px}
+  .lcard-times{font-size:11px;color:var(--dim);margin-top:5px}
+  .lcard-notes{font-size:12px;color:var(--warn);margin-top:3px;line-height:1.5}
+  .sec-title{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:10px}
+  .sec-title.mt{margin-top:22px}
+
+  /* ── Gear ── */
+  .gear-cat-hdr{font-size:13px;font-weight:700;padding:7px 11px;background:rgba(74,222,128,.06);border-radius:7px;border-left:3px solid var(--accent);margin-bottom:5px}
+  .gear-row{display:flex;align-items:flex-start;gap:8px;padding:6px 11px;border-bottom:1px solid var(--border);font-size:13px}
+  .gear-note{font-size:11px;color:var(--warn);margin-top:1px}
+  .gear-right{display:flex;gap:4px;flex-shrink:0;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  .gear-src{font-size:10px;color:var(--dim)}
+  .gear-cat{margin-bottom:18px}
+
+  /* ── Checklist (per-person columns) ── */
+  .cl-hdr{display:flex;align-items:center;padding:7px 11px;border-bottom:2px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);position:sticky;top:0;background:var(--bg);z-index:2}
+  .cl-item-col{flex:1;min-width:0}
+  .cl-pcol{width:56px;text-align:center;flex-shrink:0}
+  .cl-row{display:flex;align-items:flex-start;padding:7px 11px;border-bottom:1px solid var(--border);transition:background .15s}
+  .cl-row:hover{background:rgba(74,222,128,.03)}
+  .cl-item-text{font-size:13px;line-height:1.4}
+  .cl-item-note{font-size:11px;color:var(--dim);margin-top:2px}
+  .cl-cell{width:56px;display:flex;justify-content:center;align-items:flex-start;flex-shrink:0;padding-top:2px}
+
+  /* checkbox states: unchecked / mine-checked / others-checked / n/a */
+  .cb{width:22px;height:22px;border-radius:5px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;flex-shrink:0}
+  .cb.mine{border-color:var(--accent);background:var(--accent-m)}
+  .cb.mine .ck{display:inline;color:var(--accent);font-size:12px;font-weight:700}
+  .cb.other-j{border-color:var(--blue);background:var(--blue-bg)}
+  .cb.other-j .ck{display:inline;color:var(--blue);font-size:12px;font-weight:700}
+  .cb.other-a{border-color:var(--purple);background:var(--purple-bg)}
+  .cb.other-a .ck{display:inline;color:var(--purple);font-size:12px;font-weight:700}
+  .cb.other-k{border-color:var(--orange);background:var(--orange-bg)}
+  .cb.other-k .ck{display:inline;color:var(--orange);font-size:12px;font-weight:700}
+  .cb.na{border-color:var(--border);background:rgba(100,116,139,.06);cursor:default}
+  .cb.na::after{content:"—";color:var(--dim);font-size:10px}
+  .ck{display:none}
+
+  .cl-cat-hdr{font-size:13px;font-weight:700;margin-top:14px;margin-bottom:5px;padding:7px 11px;border-radius:7px}
+  .cl-cat-hdr.critical{background:var(--danger-bg);border-left:3px solid var(--danger)}
+  .cl-cat-hdr.decision{background:var(--warn-bg);border-left:3px solid var(--warn)}
+  .cl-cat-hdr.normal{background:rgba(74,222,128,.06);border-left:3px solid var(--accent)}
+  .cl-cat-hdr.mandatory{background:rgba(248,113,113,.06);border-left:3px solid var(--danger)}
+
+  .badge-row{display:flex;gap:7px;margin-bottom:14px;margin-top:7px;flex-wrap:wrap}
+
+  /* ── Notes ── */
+  .gap-warn{background:var(--warn-bg);border:1px solid rgba(251,191,36,.25);border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:13px;line-height:1.5}
+  .gap-info{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:13px;line-height:1.5}
+  h3.st{font-size:13px;font-weight:700;margin-bottom:7px}
+  h3.st.acc{color:var(--accent)} h3.st.bl{color:var(--blue)} h3.st.wn{color:var(--warn)} h3.st.mt{margin-top:18px}
+
+  /* ── Sync status dot ── */
+  #syncDot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0}
+  #syncDot.ok{background:var(--accent)}
+  #syncDot.err{background:var(--danger)}
+  #syncDot.wait{background:var(--warn)}
+  #syncStatus{font-size:11px;color:var(--dim);display:flex;align-items:center;margin-top:6px}
+
+  @media(max-width:600px){.cl-pcol,.cl-cell{width:40px}.cl-hdr{font-size:10px}}
+</style>
+</head>
+<body>
+
+<!-- ── Who are you? modal ── -->
+<div id="personModal">
+  <div class="modal-box">
+    <h2>⛰️ Who are you?</h2>
+    <p>Your choice is saved in this browser. You'll see everyone's checkboxes but can only check your own column.</p>
+    <div class="person-btns">
+      <button class="person-btn j" onclick="window.__fb.setPerson('j')">🔵 Jonathan</button>
+      <button class="person-btn a" onclick="window.__fb.setPerson('a')">🟣 Alan</button>
+      <button class="person-btn k" onclick="window.__fb.setPerson('k')">🟠 Kevin</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Header ── -->
+<div class="header"><div class="header-inner">
+  <div class="header-top">
+    <div>
+      <h1>⛰️ HIGHLANDER Big Bear Lake 2026</h1>
+      <div class="header-sub">Jun 20–29 · Ursa Major 5-Day Trek · San Bernardino Mountains</div>
+    </div>
+    <div>
+      <div id="personBadge" onclick="document.getElementById('personModal').style.display='flex'">👤 Select hiker</div>
+      <div id="syncStatus"><span id="syncDot" class="wait"></span> <span id="syncText">Connecting…</span></div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><span>Trek </span><b>Jun 23–27</b></div>
+    <div class="stat"><span>Elev. </span><b>7,000 ft</b></div>
+    <div class="stat"><span>Temps </span><b>40s–80s°F</b></div>
+    <div class="stat"><span>Pack </span><b>33–37 lbs</b></div>
+  </div>
+  <div class="hikers">
+    <div class="hchip j">🔵 Jonathan — PIT · XL</div>
+    <div class="hchip a">🟣 Alan — PIT · S/M</div>
+    <div class="hchip k">🟠 Kevin — MCI · Jun 22–28</div>
+  </div>
+</div></div>
+
+<div class="tab-bar"><div class="tab-bar-inner" id="tabBar"></div></div>
+<div class="content" id="content"></div>
+
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+
+const TABS=["Timeline","Gear","Lodging & Travel","Checklist","Pull from Home","Notes & Gaps"];
+let activeTab=0;
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function badge(c,t){return'<span class="badge '+c+'">'+esc(t)+'</span>'}
+function whoBadge(w){if(!w||w==='—')return'';if(w.includes('Jonathan')&&!w.includes('+'))return badge('bb',w);if(w.includes('Alan')&&!w.includes('+'))return badge('bp',w);if(w.includes('Kevin')&&!w.includes('+'))return badge('bo',w);if(w==='Shared')return badge('bgr',w);return badge('bg',w)}
+function appliesTo(a){if(a==='all')return[1,1,1];if(a==='shared')return[1,1,1];if(a==='ja')return[1,1,0];if(a==='j')return[1,0,0];if(a==='a')return[0,1,0];if(a==='k')return[0,0,1];return[1,1,1]}
+
+const PKEYS=['j','a','k'];
+const PCOLORS=['var(--blue)','var(--purple)','var(--orange)'];
+const PCLS=['other-j','other-a','other-k'];
+
+function cbHTML(key, pidx, applicable){
+  if(!applicable) return '<div class="cl-cell"><div class="cb na"></div></div>';
+  const me=window.__fb?window.__fb.getPerson():null;
+  const isMe=(me===PKEYS[pidx]);
+  const checked=window.__fb?window.__fb.isChecked(PKEYS[pidx],key):false;
+  let cls='cb';
+  if(checked) cls+= isMe?' mine':' '+PCLS[pidx];
+  const onClick=isMe?'onclick="window.__fb.toggle(\''+key.replace(/'/g,"\\'")+'\')"':'';
+  const cursor=isMe?'':'cursor:default';
+  return'<div class="cl-cell"><div class="'+cls+'" '+onClick+' style="'+cursor+'"><span class="ck">✓</span></div></div>';
+}
+
+function clHdr(){
+  return'<div class="cl-hdr"><div class="cl-item-col">Item</div>'
+   +'<div class="cl-pcol" style="color:var(--blue)">J</div>'
+   +'<div class="cl-pcol" style="color:var(--purple)">A</div>'
+   +'<div class="cl-pcol" style="color:var(--orange)">K</div>'
+   +'</div>';
+}
+
+function clRow(key,item,showM){
+  const ap=appliesTo(item.applies);
+  let b='';
+  if(showM&&item.mandatory)b+=badge('br','MANDATORY')+' ';
+  if(item.applies==='shared')b+=badge('bgr','SHARED');
+  return'<div class="cl-row"><div class="cl-item-col">'
+   +'<div class="cl-item-text">'+esc(item.item)+' '+b+'</div>'
+   +(item.note?'<div class="cl-item-note">'+esc(item.note)+'</div>':'')
+   +'</div>'
+   +cbHTML(key,0,ap[0])+cbHTML(key,1,ap[1])+cbHTML(key,2,ap[2])
+   +'</div>';
+}
+
+function clCount(pfx,list){
+  let t=0,d=0;
+  list.forEach((item,i)=>{
+    appliesTo(item.applies).forEach((y,p)=>{
+      if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],pfx+i))d++;}
+    });
+  });
+  return{total:t,done:d};
+}
+function pfhCount(){
+  let t=0,d=0;
+  PFH.forEach(cat=>{
+    cat.items.forEach((item,i)=>{
+      appliesTo(item.applies).forEach((y,p)=>{
+        if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],'pfh-'+cat.id+'-'+i))d++;}
+      });
+    });
+  });
+  return{total:t,done:d};
+}
+
+// ── Timeline ─────────────────────────────────────────────────────────────────
+const TL=[
+{date:"Sat, Jun 20",label:"Travel Day — PIT → LAX",items:[
+{t:"f",icon:"✈️",title:"Jonathan: PIT → LAX",detail:"UA744 | 5:55 PM → 8:07 PM (nonstop, 5h 12m)",who:"Jonathan",conf:"DG4QLW",notes:"Seat 22F. 29,600 mi + $11.20."},
+{t:"f",icon:"✈️",title:"Alan: PIT → LAX",detail:"UA744 | 5:55 PM → 8:07 PM (nonstop, 5h 12m)",who:"Alan",conf:"PZRFDC",notes:"Seat 22D. 31,400 mi + $11.20 + $109.62 seats. Same flight as Jonathan."},
+{t:"f",icon:"🚗",title:"Pick up rental car at LAX",detail:"National Car Rental, full-size. Conf #2108681517.",who:"J+A",conf:"2108681517",notes:"Emerald Club. $531.71 est."},
+{t:"d",text:"🛣️ LAX → Residence Inn Marina del Rey — ~5 mi, 10–15 min"},
+{t:"f",icon:"🏨",title:"Check in: Residence Inn Marina del Rey",detail:"Jun 20–22, Studio King, Partial Water View. 70K pts + $46.20.",who:"J+A",conf:"70586962",notes:"Free hot breakfast. Valet $49/day."},
+]},
+{date:"Sun, Jun 21",label:"Rest / Explore LA",items:[
+{t:"f",icon:"📍",title:"Free day — Marina del Rey",detail:"Residence Inn. Last full rest day before the mountains.",who:"J+A",notes:""},
+]},
+{date:"Mon, Jun 22",label:"Kevin arrives · Drive to Big Bear",items:[
+{t:"f",icon:"✈️",title:"Kevin: MCI → LAX",detail:"WN 4827 | 5:30 AM → 6:55 AM (nonstop, 3h 25m)",who:"Kevin",conf:"Southwest",notes:"Seat 16F. Extra Legroom."},
+{t:"f",icon:"⏰",title:"Kevin arrives LAX 6:55 AM — coordinate pickup",detail:"J+A check out Residence Inn by 11 AM. Plan timing for Kevin.",who:"All",notes:"Early checkout or Kevin waits. Confirm plan."},
+{t:"d",text:"🛣️ Marina del Rey → Big Bear Lake — ~115 mi, 2.5–3 hrs (I-10 E → CA-330 N)"},
+{t:"f",icon:"🏨",title:"Check in: Sessions Retreat & Hotel",detail:"Jun 22–23, Signature Two Queen. $152.42 paid.",who:"All 3",conf:"2097464310851",notes:"PACKET PICKUP Jun 22 3–7 PM here!"},
+{t:"f",icon:"📦",title:"PACKET PICKUP: Jun 22, 3–7 PM",detail:"Hiker tag, luggage tag, event map, passport, merino buff, waste bag.",who:"All 3",notes:"Verify all 3 packets."},
+]},
+{date:"Tue, Jun 23",label:"Trek Day 1",items:[
+{t:"f",icon:"📦",title:"Backup Packet Pickup: 6–7 AM",detail:"41798 Garstin Dr parking lot. Only if not done Jun 22.",who:"All 3",notes:""},
+{t:"f",icon:"🚐",title:"Shuttle to trailhead",detail:"From 41798 Garstin Dr. Gear check — first aid & water filter mandatory.",who:"All 3",notes:""},
+{t:"f",icon:"⛰️",title:"URSA MAJOR — DAY 1",detail:"5-day trek begins. Org provides meals at checkpoints + gas cartridge.",who:"All 3",notes:""},
+]},
+{date:"Wed–Fri, Jun 24–26",label:"Trek Days 2–4",items:[
+{t:"f",icon:"⛰️",title:"URSA MAJOR — DAYS 2–4",detail:"On trail. San Bernardino Mountains, 7,000 ft.",who:"All 3",notes:""},
+]},
+{date:"Sat, Jun 27",label:"Trek Day 5 — Finish!",items:[
+{t:"f",icon:"🏁",title:"URSA MAJOR — DAY 5 (Final)",detail:"Trek finishes. Shuttle back to parking lot.",who:"All 3",notes:"Shower! Real food!"},
+{t:"d",text:"🛣️ Parking lot → Postcard Cabins — short drive within Big Bear"},
+{t:"f",icon:"🏨",title:"Check in: Postcard Cabins Big Bear",detail:"Jun 27–28, Cabin 2 Queen Bunk. 18K pts + $42.80.",who:"J+A",conf:"83779495",notes:"Kevin's Jun 27 lodging TBD — share or book own?"},
+]},
+{date:"Sun, Jun 28",label:"Kevin departs · Drive to LA",items:[
+{t:"f",icon:"✈️",title:"Kevin: LAX → MCI",detail:"WN 1327 | 3:10 PM → 8:20 PM (nonstop, 3h 10m)",who:"Kevin",conf:"Southwest",notes:"Seat 15A. Must leave Big Bear by ~10 AM."},
+{t:"d",text:"🛣️ Big Bear Lake → LAX — ~115 mi, 2.5–3 hrs. Depart Big Bear ~10 AM."},
+{t:"f",icon:"🚗",title:"Drop Kevin at LAX, continue to hotel",detail:"Drop Kevin at terminal, then ~10 min to AC Hotel El Segundo.",who:"All",notes:"Or Kevin rideshares if J+A want more time in Big Bear."},
+{t:"d",text:"🛣️ LAX → AC Hotel El Segundo — ~3 mi, 10 min"},
+{t:"f",icon:"🏨",title:"Check in: AC Hotel LA South Bay",detail:"Jun 28–29, 1 King + Sofa Bed. 1,800 pts (FNA).",who:"J+A",conf:"6Q0U5XZSSV",notes:"Parking $39/day. Leave by ~6:30 AM tomorrow."},
+]},
+{date:"Mon, Jun 29",label:"Fly home — LAX → PIT",items:[
+{t:"f",icon:"⏰",title:"Leave AC Hotel by ~6:30 AM",detail:"Return rental car, check in for 9 AM flights. Pack night before.",who:"J+A",notes:"Hotel checkout 11 AM but flight at 9 AM."},
+{t:"f",icon:"🚗",title:"Return rental car at LAX",detail:"National Car Rental drop-off.",who:"J+A",conf:"2108681517",notes:""},
+{t:"f",icon:"✈️",title:"Jonathan: LAX → PIT",detail:"UA2039 | 9:00 AM → 4:51 PM (nonstop, 4h 51m)",who:"Jonathan",conf:"DG4QLW",notes:"Seat 22F."},
+{t:"f",icon:"✈️",title:"Alan: LAX → PIT",detail:"UA2039 | 9:00 AM → 4:51 PM (nonstop, 4h 51m)",who:"Alan",conf:"PZRFDC",notes:"Seat 22D."},
+]},
+];
+
+// ── Lodging ───────────────────────────────────────────────────────────────────
+const LODGING=[
+{dates:"Jun 20–22",name:"Residence Inn Marina del Rey",conf:"70586962",room:"Studio, 1 King, Partial Water View",cost:"70,000 pts + $46.20",notes:"Free hot breakfast. Valet $49/day. Cancel by Jun 18.",checkin:"4:00 PM",checkout:"11:00 AM",who:"Jonathan + Alan"},
+{dates:"Jun 22–23",name:"Sessions Retreat & Hotel (Big Bear)",conf:"2097464310851",room:"Signature Two Queen",cost:"$152.42 (paid)",notes:"PACKET PICKUP Jun 22 3–7 PM.",checkin:"4:00 PM",checkout:"11:00 AM",who:"All 3"},
+{dates:"Jun 23–27",name:"HIGHLANDER Ursa Major Trek",conf:"Registration",room:"Salt Creek SL3 Tent",cost:"Event reg",notes:"Org provides meals, gas cartridge, merino buff.",who:"All 3"},
+{dates:"Jun 27–28",name:"Postcard Cabins Big Bear",conf:"83779495",room:"Cabin, 2 Queen Bunk",cost:"18,000 pts + $42.80",notes:"Contactless check-in. Kevin TBD.",checkin:"4:00 PM",checkout:"11:00 AM",who:"J+A (Kevin TBD)"},
+{dates:"Jun 28–29",name:"AC Hotel LA South Bay (El Segundo)",conf:"6Q0U5XZSSV",room:"1 King + Sofa Bed",cost:"1,800 pts (FNA)",notes:"Near LAX. Parking $39/day. Leave ~6:30 AM.",checkin:"4:00 PM",checkout:"11:00 AM",who:"Jonathan + Alan"},
+];
+const TRAV=[
+{type:"✈️",label:"Jonathan: PIT→LAX",date:"Sat Jun 20",detail:"UA744 | 5:55p→8:07p (nonstop)",conf:"DG4QLW",notes:"Seat 22F."},
+{type:"✈️",label:"Alan: PIT→LAX",date:"Sat Jun 20",detail:"UA744 | 5:55p→8:07p (nonstop)",conf:"PZRFDC",notes:"Seat 22D."},
+{type:"✈️",label:"Kevin: MCI→LAX",date:"Mon Jun 22",detail:"WN 4827 | 5:30a→6:55a (nonstop)",conf:"Southwest",notes:"Seat 16F."},
+{type:"🚗",label:"National Car Rental (LAX)",date:"Jun 20–29",detail:"Full-size. LAX pick up/return.",conf:"2108681517",notes:"$531.71."},
+{type:"✈️",label:"Kevin: LAX→MCI",date:"Sun Jun 28",detail:"WN 1327 | 3:10p→8:20p (nonstop)",conf:"Southwest",notes:"Seat 15A."},
+{type:"✈️",label:"Jonathan: LAX→PIT",date:"Mon Jun 29",detail:"UA2039 | 9:00a→4:51p (nonstop)",conf:"DG4QLW",notes:"Seat 22F."},
+{type:"✈️",label:"Alan: LAX→PIT",date:"Mon Jun 29",detail:"UA2039 | 9:00a→4:51p (nonstop)",conf:"PZRFDC",notes:"Seat 22D."},
+];
+
+// ── Gear ─────────────────────────────────────────────────────────────────────
+const GEAR=[
+{name:"🎒 Packs & Bags",items:[
+{item:"Gregory Baltoro 65L (M)",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Osprey Atmos AG 65L (S/M)",who:"Alan",src:"Backcountry",s:"owned"},
+{item:"GI Duffel Bags ×2",who:"J+A",src:"McGuire",s:"ordered"},
+{item:"Waterproof Rucksack Covers ×2",who:"J+A",src:"McGuire",s:"ordered"},
+{item:"Hydration Reservoirs 3L ×2",who:"J+A",src:"REI",s:"owned"},
+]},
+{name:"⛺ Shelter & Sleep",items:[
+{item:"Salt Creek SL3 3P Tent + Footprint",who:"Shared",src:"Backcountry",s:"owned"},
+{item:"NEMO Disco 15°F Bags ×2 (Reg)",who:"J+A",src:"NEMO",s:"owned"},
+{item:"NEMO Tensor UL Pads ×2 (Reg)",who:"J+A",src:"NEMO",s:"owned"},
+]},
+{name:"👕 Base Layer",items:[
+{item:"Active Ultralite Tees ~3",who:"J+A",src:"REI",s:"owned"},
+{item:"Merino T-Shirt XL",who:"Jonathan",src:"REI",s:"owned"},
+{item:"Merino LS Base Tops ×2",who:"J+A",src:"REI",s:"owned"},
+{item:"Merino 3/4 Bottom (S)",who:"Alan",src:"Backcountry",s:"owned"},
+{item:"Merino 3/4 Bottom (XL)",who:"Jonathan",src:"Backcountry",s:"owned"},
+]},
+{name:"🧥 Mid Layer",items:[
+{item:"Nano Puff (M, Dried Vanilla)",who:"Alan",src:"Backcountry",s:"owned"},
+{item:"Nano Puff (XL, Pond Green)",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Better Sweater 1/2-Zip XL (BC)",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Better Sweater 1/2-Zip XL (REI)",who:"Jonathan",src:"REI",s:"owned"},
+{item:"Highliner Fleece XL (Black)",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Highliner Fleece XL (Kalamata)",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Smartwool Waffle Henley XL",who:"Jonathan",src:"REI",s:"owned"},
+{item:"Smartwool Everyday Hoodie XL",who:"Jonathan",src:"REI",s:"owned"},
+{item:"Hoodies ×3+ (various)",who:"J+A",src:"REI",s:"owned",note:"Some bookend/sale items"},
+]},
+{name:"🌧️ Shell",items:[
+{item:"Torrentshell 3L (XL, Caper Green)",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Torrentshell 3L (M, Blue Sage)",who:"Alan",src:"Backcountry",s:"owned"},
+]},
+{name:"👖 Bottoms",items:[
+{item:"Sahara Convertible Pants — 6+ pairs",who:"J+A",src:"REI",s:"owned",note:"Some bookend/sale"},
+{item:"Sahara Stretch Convertible",who:"—",src:"REI",s:"processing"},
+{item:"Ferrosi Convertible (38/S)",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Arch Rock Convertible (M)",who:"Alan",src:"REI",s:"owned"},
+{item:"DWR Nylon Convertible (S)",who:"Alan",src:"REI",s:"owned"},
+{item:"Trailmade Pants XL",who:"Jonathan",src:"REI",s:"owned"},
+{item:"Board Shorts (M)",who:"Alan",src:"REI",s:"owned"},
+]},
+{name:"🧦 Socks",items:[
+{item:"Creepers Boot Socks L ×2",who:"Jonathan",src:"Creepers",s:"delivered"},
+{item:"Creepers Boot Socks M ×2",who:"Alan",src:"Creepers",s:"delivered"},
+{item:"Creepers Camo-toes ×2",who:"J+A",src:"Creepers",s:"delivered"},
+]},
+{name:"🧤 Accessories",items:[
+{item:"Liner Gloves (L)",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Liner Gloves (M)",who:"Alan",src:"Backcountry",s:"owned"},
+{item:"Basin Belt L",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Basin Belt (REI)",who:"—",src:"REI",s:"processing"},
+{item:"Ferrosi Gaiters L",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Ferrosi Gaiters M",who:"Alan",src:"Backcountry",s:"owned"},
+{item:"BD Spot 400-R Headlamps ×2",who:"J+A",src:"Backcountry",s:"owned"},
+{item:"Sherpa Lite Trekking Poles ×1 pair",who:"—",src:"REI",s:"owned",note:"Only 1 pair — more needed?"},
+]},
+{name:"☀️ Sun Protection",items:[
+{item:"Tahoe Sun Hoodie XL (Turbulence)",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Tahoe Sun Hoodie XL (Kalamata)",who:"Jonathan",src:"Backcountry",s:"owned"},
+{item:"Tahoe Sun Hoodie S (Zinnia)",who:"Alan",src:"Backcountry",s:"owned"},
+]},
+];
+
+// ── Checklist ─────────────────────────────────────────────────────────────────
+const CL=[
+{item:"Backpack (50–65L)",mandatory:true,applies:"all",note:"Baltoro (J), Atmos (A), Kevin TBD"},
+{item:"Tent (3-season)",mandatory:true,applies:"shared",note:"Salt Creek SL3 3P. Kevin: share or own?"},
+{item:"Sleeping bag (≤20°F)",mandatory:true,applies:"all",note:"NEMO Disco (J+A). Kevin: own bag."},
+{item:"Sleeping pad (insulated)",mandatory:true,applies:"all",note:"NEMO Tensor (J+A). Kevin: own pad."},
+{item:"Headlamp + batteries",mandatory:true,applies:"all",note:"BD Spot 400-R (J+A). Kevin: own."},
+{item:"First aid kit",mandatory:true,applies:"shared",note:"1+ per group. Moleskin, ibuprofen, bandages."},
+{item:"Water — min 4L at start",mandatory:true,applies:"all",note:"Reservoirs + bottles. Kevin: own."},
+{item:"Water filter / purification",mandatory:true,applies:"shared",note:"CRITICAL. Sawyer Squeeze or similar."},
+{item:"Rain jacket / shell",mandatory:true,applies:"all",note:"Torrentshell (J+A). Kevin: own."},
+{item:"Warm insulated layer",mandatory:true,applies:"all",note:"Nano Puff (J+A). Kevin: own."},
+{item:"Long pants",mandatory:true,applies:"all",note:"Convertible pants (J+A). Kevin: own."},
+{item:"Long-sleeve shirt",mandatory:true,applies:"all",note:"Merino / sun hoodies (J+A). Kevin: own."},
+{item:"Sun — brimmed hat, SPF 50+, sunglasses",mandatory:true,applies:"all",note:"All pull from home or buy."},
+{item:"Warm beanie",mandatory:false,applies:"all",note:"Lows in 40s."},
+{item:"Gloves (lightweight)",mandatory:false,applies:"all",note:"Liner Gloves (J+A). Kevin: own."},
+{item:"Whistle",mandatory:true,applies:"all",note:"Often on sternum strap."},
+{item:"TP + trowel (LNT)",mandatory:true,applies:"shared",note:"1 trowel per group. TP per person."},
+{item:"Waste bag",mandatory:true,applies:"all",note:"Provided by org at packet pickup."},
+{item:"Hiking boots (broken in!)",mandatory:true,applies:"all",note:"Break in NOW — 5 weeks left."},
+{item:"Knife / multi-tool",mandatory:false,applies:"shared",note:"CHECKED luggage only."},
+{item:"Trekking poles",mandatory:false,applies:"all",note:"1 pair ordered. More needed?"},
+{item:"Camp stove body",mandatory:false,applies:"shared",note:"Org provides gas cartridge only."},
+{item:"Cookware / utensils",mandatory:false,applies:"all",note:"Lightweight cook set."},
+{item:"Camp shoes / sandals",mandatory:false,applies:"all",note:"Crocs, Tevas, etc."},
+{item:"Phone + power bank",mandatory:false,applies:"all",note:"10,000+ mAh. 5 days off-grid."},
+{item:"InReach satellite comm",mandatory:false,applies:"shared",note:"Confirm subscription active."},
+{item:"Buff / neck gaiter",mandatory:false,applies:"all",note:"Org provides merino buff."},
+];
+
+// ── Pull from Home ─────────────────────────────────────────────────────────────
+const PFH=[
+{id:"crit",cat:"🚨 Critical / Mandatory",type:"critical",items:[
+{item:"Water filter (Sawyer Squeeze)",applies:"shared",note:"MANDATORY. Buy ASAP if not owned."},
+{item:"First aid kit",applies:"shared",note:"Mandatory at gear check."},
+{item:"Whistle",applies:"all",note:"Often on pack sternum strap."},
+{item:"TP + trowel + waste bags",applies:"shared",note:"Dig catholes 6–8\", 200 ft from water."},
+{item:"Sunscreen SPF 50+ + lip balm",applies:"all",note:"7,000 ft UV. Reapply every 2 hrs."},
+{item:"Sunglasses (UV400)",applies:"all",note:"Mandatory at altitude."},
+]},
+{id:"stove",cat:"🔥 Stove & Cook",type:"normal",items:[
+{item:"Stove body (Jetboil, PocketRocket)",applies:"shared",note:"Org provides gas cartridge."},
+{item:"Cookware — pot, lid, utensils",applies:"shared",note:"+ cup/mug."},
+{item:"Lighter / matches",applies:"shared",note:"Backup ignition."},
+]},
+{id:"foot",cat:"👟 Footwear",type:"normal",items:[
+{item:"Hiking boots / trail runners (BROKEN IN)",applies:"all",note:"Wear on plane. Break in now."},
+{item:"Camp shoes / sandals",applies:"all",note:"Foot recovery each night."},
+]},
+{id:"head",cat:"🧢 Head & Accessories",type:"normal",items:[
+{item:"Brimmed sun hat (UPF 50+)",applies:"all",note:"Desert sun at 7,000 ft."},
+{item:"Warm beanie",applies:"all",note:"Lows in 40s."},
+{item:"Knife / multi-tool",applies:"shared",note:"CHECKED luggage."},
+]},
+{id:"elec",cat:"🔋 Electronics",type:"normal",items:[
+{item:"Power bank 10,000+ mAh",applies:"all",note:"5 days off-grid."},
+{item:"Charging cables",applies:"all",note:"USB-C / Lightning."},
+{item:"InReach — confirm subscription",applies:"shared",note:"Test messaging. Emergency contacts."},
+{item:"Offline maps (Gaia / AllTrails)",applies:"all",note:"No cell signal on trail."},
+]},
+{id:"pers",cat:"🩲 Personal Items",type:"normal",items:[
+{item:"Wicking briefs ×3",applies:"all",note:"Hand-wash overnight."},
+{item:"Extra wool socks ×2–3 pairs",applies:"all",note:"Beyond Creepers (J+A)."},
+{item:"Toiletries (travel-size)",applies:"all",note:"Scented items stored with food (bears)."},
+{item:"Medications / prescriptions",applies:"all",note:""},
+{item:"ID / insurance / cash",applies:"all",note:""},
+]},
+{id:"dec",cat:"❓ Decisions Needed",type:"decision",items:[
+{item:"Kevin's big-4 (pack, tent, bag, pad)?",applies:"k",note:"Kevin must confirm gear."},
+{item:"Additional trekking poles?",applies:"all",note:"Only 1 pair ordered."},
+{item:"Rain pants?",applies:"all",note:"5 days = higher rain chance."},
+{item:"Sleeping bag liners?",applies:"all",note:"Warmth + cleanliness for 5 nights."},
+{item:"Kevin's lodging Jun 27?",applies:"k",note:"Share Postcard Cabins or book own?"},
+]},
+];
+
+const GAPS=[
+{type:"info",text:"Alan: same UA744/UA2039 as Jonathan. Conf PZRFDC. Seat 22D. 31,400 mi + $11.20 + $109.62 seat upgrades."},
+{type:"info",text:"Kevin Dupuy: Southwest MCI→LAX Jun 22 (arr 6:55 AM), LAX→MCI Jun 28 (dep 3:10 PM). On trek Jun 23–27 only."},
+{type:"info",text:"Kevin also has DSM↔PIT flights Jun 29 & Jul 5 — separate travel, not part of this trip."},
+{type:"info",text:"Format: 5-day Ursa Major. Pack 33–37 lbs. Shuttle from 41798 Garstin Dr."},
+{type:"info",text:"Packet Pickup: Jun 22 3–7 PM at Sessions Retreat, and/or Jun 23 6–7 AM at parking lot."},
+{type:"info",text:"Org provides: checkpoint meals, gas cartridge, merino buff, waste bag, hiker tag, luggage tag, map, passport."},
+{type:"info",text:"Mid-layer surplus (J+A): 2× Nano Puffs, 2+ Better Sweaters, 2× Highliners, Smartwool hoodies. Pick final carry per hiker."},
+{type:"warn",text:"Water filter — #1 critical gap. MUST carry for Ursa Major."},
+{type:"warn",text:"Kevin's gear status unknown — needs pack, tent (or share), bag, pad, headlamp, shell, insulation. Confirm ASAP."},
+{type:"warn",text:"Kevin arrives LAX 6:55 AM Jun 22 — J+A checkout 11 AM. Coordinate: early checkout or Kevin waits?"},
+{type:"warn",text:"Kevin departs LAX 3:10 PM Jun 28 — must leave Big Bear ~10 AM. Drive together or Kevin arranges own?"},
+{type:"warn",text:"Kevin's Jun 27 night — Postcard Cabins 2Q Bunk could fit 3, or Kevin books separately."},
+{type:"warn",text:"Sharp items (poles, multi-tool, stakes) → CHECKED luggage."},
+{type:"warn",text:"Fuel canisters NOT on aircraft. Org provides gas cartridge on-site."},
+{type:"warn",text:"Jun 29: UA2039 at 9 AM. Leave AC Hotel ~6:30 AM. Pack night before."},
+];
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(){
+  const cl=clCount('cl-',CL),pf=pfhCount();
+  // tabs
+  let th='';
+  TABS.forEach((t,i)=>{let l=esc(t);if(i===3)l+=' ('+cl.done+'/'+cl.total+')';if(i===4)l+=' ('+pf.done+'/'+pf.total+')';th+='<button class="tab-btn'+(i===activeTab?' active':'')+'" onclick="switchTab('+i+')">'+l+'</button>'});
+  document.getElementById('tabBar').innerHTML=th;
+
+  let h='';
+
+  if(activeTab===0){
+    h+='<p class="intro">Day-by-day travel. Trek days shown on-trail. 🛣️ lines show driving segments.</p>';
+    TL.forEach(day=>{
+      h+='<div class="tl-day"><div class="tl-day-hdr">📅 '+esc(day.date)+' — '+esc(day.label)+'</div>';
+      day.items.forEach(it=>{
+        if(it.t==='d'){h+='<div class="tl-drive">'+esc(it.text)+'</div>';return}
+        h+='<div class="tl-card"><div class="tl-card-hd"><div style="flex:1"><div class="tl-title">'+(it.icon||'')+' '+esc(it.title)+'</div><div class="tl-sub">'+esc(it.detail)+'</div></div>';
+        if(it.who)h+='<div>'+whoBadge(it.who)+'</div>';
+        h+='</div>';
+        if(it.conf)h+='<div class="tl-conf">Conf: '+esc(it.conf)+'</div>';
+        if(it.notes)h+='<div class="tl-notes">'+esc(it.notes)+'</div>';
+        h+='</div>';
+      });
+      h+='</div>';
+    });
+  }
+
+  if(activeTab===1){
+    h+='<p class="intro">Gear for Jonathan & Alan. Kevin\'s loadout TBD.</p>';
+    GEAR.forEach(cat=>{
+      h+='<div class="gear-cat"><div class="gear-cat-hdr">'+esc(cat.name)+'</div>';
+      cat.items.forEach(g=>{
+        h+='<div class="gear-row"><div style="flex:1;min-width:0"><div>'+esc(g.item)+'</div>'+(g.note?'<div class="gear-note">'+esc(g.note)+'</div>':'')+'</div><div class="gear-right">'+whoBadge(g.who)+' <span class="gear-src">'+esc(g.src)+'</span> '+badge(g.s==='processing'?'by':'bg',g.s)+'</div></div>';
+      });
+      h+='</div>';
+    });
+  }
+
+  if(activeTab===2){
+    h+='<div class="sec-title">🏨 Lodging</div>';
+    LODGING.forEach(l=>{
+      h+='<div class="lcard"><div class="lcard-hd"><div><div class="lcard-name">'+esc(l.name)+'</div><div class="lcard-room">'+esc(l.dates)+' · '+esc(l.room)+'</div></div><div style="text-align:right"><div class="lcard-cost mono">'+esc(l.cost)+'</div><div class="lcard-conf">Conf: '+esc(l.conf)+'</div></div></div>'+(l.who?'<div style="margin-top:4px">'+badge('bg',l.who)+'</div>':'')+(l.checkin?'<div class="lcard-times">In '+esc(l.checkin)+' · Out '+esc(l.checkout)+'</div>':'')+'<div class="lcard-notes">'+esc(l.notes)+'</div></div>';
+    });
+    h+='<div class="sec-title mt">✈️ 🚗 Transportation</div>';
+    TRAV.forEach(t=>{
+      h+='<div class="lcard"><div class="lcard-name">'+esc(t.type)+' '+esc(t.label)+'</div><div class="lcard-room">'+esc(t.date)+'</div><div style="font-size:13px;margin-top:4px">'+esc(t.detail)+'</div><div class="lcard-conf" style="margin-top:2px">Conf: '+esc(t.conf)+'</div><div class="lcard-notes">'+esc(t.notes)+'</div></div>';
+    });
+  }
+
+  if(activeTab===3){
+    h+='<p class="intro">Each person checks their own column. Shared items get a checkbox per person for confirmation. Others\' checks show in their color.</p>';
+    h+='<div class="badge-row">'+badge('bg',cl.done+' checked')+' '+badge('bgr',(cl.total-cl.done)+' remaining')+'</div>';
+    h+=clHdr();
+    h+='<div class="cl-cat-hdr mandatory">🔴 Mandatory Gear</div>';
+    CL.forEach((g,i)=>{if(g.mandatory)h+=clRow('cl-'+i,g,true)});
+    h+='<div class="cl-cat-hdr normal" style="margin-top:14px">🟢 Recommended</div>';
+    CL.forEach((g,i)=>{if(!g.mandatory)h+=clRow('cl-'+i,g,false)});
+  }
+
+  if(activeTab===4){
+    h+='<p class="intro">Items from home or to buy. Check your column as you set things aside.</p>';
+    h+='<div class="badge-row">'+badge('bg',pf.done+' set aside')+' '+badge('bgr',(pf.total-pf.done)+' remaining')+'</div>';
+    h+=clHdr();
+    PFH.forEach(cat=>{
+      h+='<div class="cl-cat-hdr '+cat.type+'">'+esc(cat.cat)+'</div>';
+      cat.items.forEach((g,i)=>{
+        const ap=appliesTo(g.applies);
+        h+='<div class="cl-row"><div class="cl-item-col"><div class="cl-item-text">'+esc(g.item)+(g.applies==='shared'?' '+badge('bgr','SHARED'):'')+'</div>'+(g.note?'<div class="cl-item-note">'+esc(g.note)+'</div>':'')+'</div>'
+         +cbHTML('pfh-'+cat.id+'-'+i,0,ap[0])
+         +cbHTML('pfh-'+cat.id+'-'+i,1,ap[1])
+         +cbHTML('pfh-'+cat.id+'-'+i,2,ap[2])
+         +'</div>';
+      });
+    });
+  }
+
+  if(activeTab===5){
+    h+='<p class="intro">Action items and confirmed info.</p>';
+    h+='<h3 class="st wn">⚠️ Action Items</h3>';
+    GAPS.filter(g=>g.type==='warn').forEach(g=>{h+='<div class="gap-warn">'+esc(g.text)+'</div>'});
+    h+='<h3 class="st bl mt">ℹ️ Confirmed Info</h3>';
+    GAPS.filter(g=>g.type==='info').forEach(g=>{h+='<div class="gap-info">'+esc(g.text)+'</div>'});
+  }
+
+  document.getElementById('content').innerHTML=h;
+}
+
+function switchTab(i){activeTab=i;render()}
+
+// ── Firebase sync status indicator ────────────────────────────────────────────
+(function pollStatus(){
+  const dot=document.getElementById('syncDot');
+  const txt=document.getElementById('syncText');
+  if(!dot)return;
+  if(window.__fb&&window.__fb.getPerson()!==null){
+    dot.className='ok';txt.textContent='Live sync active';
+  } else {
+    dot.className='wait';txt.textContent='Select your name to sync';
+  }
+  setTimeout(pollStatus,2000);
+})();
+
+// Initial render (will re-render when Firebase data arrives)
+render();
+</script>
+</body>
+</html>
