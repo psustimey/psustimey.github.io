@@ -10,96 +10,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-<script>
-  firebase.initializeApp({
-    apiKey:            "AIzaSyDhw-hdONjo22YsoxJ-4aLXt9854WIwagY",
-    authDomain:        "highlander-b4875.firebaseapp.com",
-    databaseURL:       "https://highlander-b4875-default-rtdb.firebaseio.com",
-    projectId:         "highlander-b4875",
-    storageBucket:     "highlander-b4875.firebasestorage.app",
-    messagingSenderId: "547927288536",
-    appId:             "1:547927288536:web:9ecd745fc8fc86d9c505ad",
-    measurementId:     "G-BWG56QFVQP"
-  });
-
-  const auth     = firebase.auth();
-  const db       = firebase.database();
-  const ROOT     = "hl2026";
-  const provider = new firebase.auth.GoogleAuthProvider();
-
-  // ── Whitelist — add Alan & Kevin's Gmail when ready ──────────
-  const ALLOWED = {
-    "jonathanholman@gmail.com": "j",
-    // "alans.email@gmail.com":  "a",   ← uncomment + fill in
-    // "kevins.email@gmail.com": "k",   ← uncomment + fill in
-  };
-  // ─────────────────────────────────────────────────────────────
-
-  let remoteChecks = {};
-  let localPerson  = null;
-
-  window.__fb = {
-    toggle(key) {
-      if (!localPerson) return;
-      const current = !!((remoteChecks[localPerson] || {})[key]);
-      db.ref(ROOT + "/" + localPerson + "/" + key).set(!current);
-    },
-    isChecked(person, key) {
-      return !!((remoteChecks[person] || {})[key]);
-    },
-    getPerson() { return localPerson; }
-  };
-
-  window.signInWithGoogle = function() {
-    auth.signInWithPopup(provider).catch(err => {
-      console.error("Sign-in error:", err);
-    });
-  };
-
-  window.signOut = function() {
-    auth.signOut();
-  };
-
-  auth.onAuthStateChanged(user => {
-    if (!user) {
-      showScreen("login");
-      return;
-    }
-
-    const email = user.email.toLowerCase();
-    const person = ALLOWED[email];
-
-    if (!person) {
-      // Signed in but not on the list
-      document.getElementById("deniedEmail").textContent = user.email;
-      showScreen("denied");
-      return;
-    }
-
-    // Authenticated & authorized
-    localPerson = person;
-    document.getElementById("userEmail").textContent = user.email;
-    document.getElementById("personBadge").textContent =
-      person === "j" ? "🔵 Jonathan" :
-      person === "a" ? "🟣 Alan" : "🟠 Kevin";
-
-    // Start DB listener
-    db.ref(ROOT).on("value", snap => {
-      remoteChecks = snap.val() || {};
-      if (typeof render === "function") render();
-    });
-
-    showScreen("app");
-  });
-
-  function showScreen(name) {
-    ["login","denied","app"].forEach(id => {
-      const el = document.getElementById("screen-" + id);
-      if (el) el.style.display = (id === name) ? "" : "none";
-    });
-  }
-</script>
-
 <style>
   :root {
     --bg:#0a1a0f; --card:#0f2517; --card2:#132e1c;
@@ -116,28 +26,27 @@
   body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
   .mono{font-family:'JetBrains Mono',monospace}
 
-  /* ── Login screen ── */
-  #screen-login{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:0;background:linear-gradient(135deg,#0a1a0f,#0f2517 50%,#0a1a0f)}
+  /* All screens hidden by default — JS controls visibility */
+  #screen-login, #screen-denied, #screen-app { display:none; }
+
+  /* Login */
+  #screen-login{min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a1a0f,#0f2517 50%,#0a1a0f)}
   .login-box{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:48px 40px;max-width:380px;width:90%;text-align:center}
   .login-logo{font-size:48px;margin-bottom:16px}
   .login-box h1{font-size:22px;font-weight:700;color:var(--accent);letter-spacing:-.5px;margin-bottom:6px}
   .login-box p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:32px}
   .google-btn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#1f1f1f;border:none;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:box-shadow .2s;width:100%;justify-content:center}
-  .google-btn:hover{box-shadow:0 2px 12px rgba(255,255,255,.15)}
-  .google-btn svg{flex-shrink:0}
+  .google-btn:hover{box-shadow:0 2px 16px rgba(255,255,255,.2)}
   .login-note{color:var(--dim);font-size:11px;margin-top:16px}
 
-  /* ── Denied screen ── */
-  #screen-denied{display:none;min-height:100vh;align-items:center;justify-content:center;background:var(--bg)}
+  /* Denied */
+  #screen-denied{min-height:100vh;align-items:center;justify-content:center;}
   .denied-box{background:var(--card);border:1px solid rgba(248,113,113,.3);border-radius:20px;padding:40px;max-width:360px;width:90%;text-align:center}
   .denied-box h2{color:var(--danger);font-size:18px;margin-bottom:10px}
   .denied-box p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:6px}
   #deniedEmail{color:var(--text);font-weight:600}
   .denied-btn{margin-top:24px;padding:10px 20px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit}
-  .denied-btn:hover{border-color:var(--accent);color:var(--accent)}
-
-  /* ── App screen ── */
-  #screen-app{display:none}
+  .denied-btn:hover{border-color:var(--danger);color:var(--danger)}
 
   /* Header */
   .header{background:linear-gradient(135deg,#0f2517,#1a3a25 50%,#0d3320);border-bottom:1px solid var(--border);padding:20px 16px 14px}
@@ -250,8 +159,8 @@
 </head>
 <body>
 
-<!-- ── Login screen ── -->
-<div id="screen-login" style="display:flex">
+<!-- Login -->
+<div id="screen-login">
   <div class="login-box">
     <div class="login-logo">⛰️</div>
     <h1>HIGHLANDER 2026</h1>
@@ -264,18 +173,18 @@
   </div>
 </div>
 
-<!-- ── Access denied screen ── -->
-<div id="screen-denied" style="display:none;min-height:100vh;display:none;align-items:center;justify-content:center">
+<!-- Access denied -->
+<div id="screen-denied">
   <div class="denied-box">
     <h2>🚫 Access Denied</h2>
     <p>The account <strong><span id="deniedEmail"></span></strong> is not on the trip roster.</p>
     <p style="margin-top:8px">Contact Jonathan if you think this is a mistake.</p>
-    <button class="denied-btn" onclick="signOut()">Sign out and try another account</button>
+    <button class="denied-btn" onclick="doSignOut()">Sign out and try another account</button>
   </div>
 </div>
 
-<!-- ── App screen ── -->
-<div id="screen-app" style="display:none">
+<!-- App -->
+<div id="screen-app">
   <div class="header"><div class="header-inner">
     <div class="header-top">
       <div>
@@ -286,7 +195,7 @@
         <div id="personBadge"></div>
         <div class="signout-row">
           <span id="userEmail"></span>
-          <button class="signout-btn" onclick="signOut()">sign out</button>
+          <button class="signout-btn" onclick="doSignOut()">sign out</button>
         </div>
       </div>
     </div>
@@ -307,26 +216,125 @@
 </div>
 
 <script>
-const TABS=["Timeline","Gear","Lodging & Travel","Checklist","Pull from Home","Notes & Gaps"];
-let activeTab=0;
+// ── Firebase init ─────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:            "AIzaSyDhw-hdONjo22YsoxJ-4aLXt9854WIwagY",
+  authDomain:        "highlander-b4875.firebaseapp.com",
+  databaseURL:       "https://highlander-b4875-default-rtdb.firebaseio.com",
+  projectId:         "highlander-b4875",
+  storageBucket:     "highlander-b4875.firebasestorage.app",
+  messagingSenderId: "547927288536",
+  appId:             "1:547927288536:web:9ecd745fc8fc86d9c505ad"
+});
+
+const auth = firebase.auth();
+const db   = firebase.database();
+const ROOT = "hl2026";
+
+// ── Whitelist ─────────────────────────────────────────────────
+const ALLOWED = {
+  "jonathanholman@gmail.com": "j",
+  // "alans.email@gmail.com":  "a",
+  // "kevins.email@gmail.com": "k",
+};
+
+// ── State ─────────────────────────────────────────────────────
+let remoteChecks = {};
+let localPerson  = null;
+let dbListening  = false;
+
+// ── Screen helper ─────────────────────────────────────────────
+function showScreen(name) {
+  ["login","denied","app"].forEach(id => {
+    const el = document.getElementById("screen-" + id);
+    el.style.display = (id === name)
+      ? (id === "login" || id === "denied" ? "flex" : "block")
+      : "none";
+  });
+}
+
+// ── Auth actions ──────────────────────────────────────────────
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err => {
+    console.error("Sign-in error:", err.code, err.message);
+  });
+}
+
+function doSignOut() {
+  if (dbListening) {
+    db.ref(ROOT).off();
+    dbListening = false;
+  }
+  localPerson = null;
+  remoteChecks = {};
+  auth.signOut();
+}
+
+// ── Auth state listener ───────────────────────────────────────
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    showScreen("login");
+    return;
+  }
+
+  const email  = user.email ? user.email.toLowerCase() : "";
+  const person = ALLOWED[email];
+
+  if (!person) {
+    document.getElementById("deniedEmail").textContent = user.email;
+    showScreen("denied");
+    return;
+  }
+
+  // Authorized — set up app
+  localPerson = person;
+  document.getElementById("userEmail").textContent   = user.email;
+  document.getElementById("personBadge").textContent =
+    person === "j" ? "🔵 Jonathan" :
+    person === "a" ? "🟣 Alan" : "🟠 Kevin";
+
+  // Show app screen first so DOM elements exist for render()
+  showScreen("app");
+
+  // Then start DB listener and render
+  if (!dbListening) {
+    dbListening = true;
+    db.ref(ROOT).on("value", snap => {
+      remoteChecks = snap.val() || {};
+      render();
+    });
+  } else {
+    render();
+  }
+});
+
+// ── App logic ─────────────────────────────────────────────────
+const TABS   = ["Timeline","Gear","Lodging & Travel","Checklist","Pull from Home","Notes & Gaps"];
+const PKEYS  = ["j","a","k"];
+const PCLS   = ["other-j","other-a","other-k"];
+let activeTab = 0;
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function badge(c,t){return'<span class="badge '+c+'">'+esc(t)+'</span>'}
 function whoBadge(w){if(!w||w==='—')return'';if(w==='Jonathan')return badge('bb',w);if(w==='Alan')return badge('bp',w);if(w==='Kevin')return badge('bo',w);if(w==='Shared')return badge('bgr',w);return badge('bg',w)}
 function appliesTo(a){if(a==='all'||a==='shared')return[1,1,1];if(a==='ja')return[1,1,0];if(a==='j')return[1,0,0];if(a==='a')return[0,1,0];if(a==='k')return[0,0,1];return[1,1,1]}
-const PKEYS=['j','a','k'];
-const PCLS=['other-j','other-a','other-k'];
+
+function fbToggle(key) {
+  if (!localPerson) return;
+  const current = !!((remoteChecks[localPerson] || {})[key]);
+  db.ref(ROOT + "/" + localPerson + "/" + key).set(!current);
+}
+function fbIsChecked(person, key) { return !!((remoteChecks[person] || {})[key]); }
 
 function cbHTML(key,pidx,ok){
   if(!ok)return'<div class="cl-cell"><div class="cb na"></div></div>';
-  const me=window.__fb?window.__fb.getPerson():null;
-  const isMe=(me===PKEYS[pidx]);
-  const checked=window.__fb?window.__fb.isChecked(PKEYS[pidx],key):false;
+  const isMe=(localPerson===PKEYS[pidx]);
+  const checked=fbIsChecked(PKEYS[pidx],key);
   let cls='cb';
   if(checked)cls+=' '+(isMe?'mine':PCLS[pidx]);
-  const click=isMe?'onclick="window.__fb.toggle(\''+key.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')"':'';
-  const cur=isMe?'':'cursor:default';
-  return'<div class="cl-cell"><div class="'+cls+'" '+click+' style="'+cur+'"><span class="ck">✓</span></div></div>';
+  const click=isMe?'onclick="fbToggle(\''+key.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')"':'';
+  return'<div class="cl-cell"><div class="'+cls+'" '+click+' style="'+(isMe?'':'cursor:default')+'"><span class="ck">✓</span></div></div>';
 }
 function clHdr(){return'<div class="cl-hdr"><div class="cl-item-col">Item</div><div class="cl-pcol" style="color:var(--blue)">J</div><div class="cl-pcol" style="color:var(--purple)">A</div><div class="cl-pcol" style="color:var(--orange)">K</div></div>'}
 function clRow(key,item,showM){
@@ -334,9 +342,10 @@ function clRow(key,item,showM){
   let b='';if(showM&&item.mandatory)b+=badge('br','MANDATORY')+' ';if(item.applies==='shared')b+=badge('bgr','SHARED');
   return'<div class="cl-row"><div class="cl-item-col"><div class="cl-item-text">'+esc(item.item)+' '+b+'</div>'+(item.note?'<div class="cl-item-note">'+esc(item.note)+'</div>':'')+'</div>'+cbHTML(key,0,ap[0])+cbHTML(key,1,ap[1])+cbHTML(key,2,ap[2])+'</div>';
 }
-function clCount(pfx,list){let t=0,d=0;list.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],pfx+i))d++;}})});return{total:t,done:d}}
-function pfhCount(){let t=0,d=0;PFH.forEach(cat=>{cat.items.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],'pfh-'+cat.id+'-'+i))d++;}})})});return{total:t,done:d}}
+function clCount(pfx,list){let t=0,d=0;list.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(fbIsChecked(PKEYS[p],pfx+i))d++;}})});return{total:t,done:d}}
+function pfhCount(){let t=0,d=0;PFH.forEach(cat=>{cat.items.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(fbIsChecked(PKEYS[p],'pfh-'+cat.id+'-'+i))d++;}})})});return{total:t,done:d}}
 
+// ── Data ──────────────────────────────────────────────────────
 const TL=[
 {date:"Sat, Jun 20",label:"Travel Day — PIT → LAX",items:[
 {t:"f",icon:"✈️",title:"Jonathan: PIT → LAX",detail:"UA744 | 5:55 PM → 8:07 PM (nonstop, 5h 12m)",who:"Jonathan",conf:"DG4QLW",notes:"Seat 22F. 29,600 mi + $11.20."},
@@ -399,7 +408,6 @@ const TRAV=[
 {type:"✈️",label:"Jonathan: LAX→PIT",date:"Mon Jun 29",detail:"UA2039 | 9:00a→4:51p",conf:"DG4QLW",notes:"Seat 22F."},
 {type:"✈️",label:"Alan: LAX→PIT",date:"Mon Jun 29",detail:"UA2039 | 9:00a→4:51p",conf:"PZRFDC",notes:"Seat 22D."},
 ];
-
 const GEAR=[
 {name:"🎒 Packs & Bags",items:[
 {item:"Gregory Baltoro 65L (M)",who:"Jonathan",src:"Backcountry",s:"owned"},
@@ -463,7 +471,6 @@ const GEAR=[
 {item:"Tahoe Sun Hoodie S (Zinnia)",who:"Alan",src:"Backcountry",s:"owned"},
 ]},
 ];
-
 const CL=[
 {item:"Backpack (50–65L)",mandatory:true,applies:"all",note:"Baltoro (J), Atmos (A), Kevin TBD"},
 {item:"Tent (3-season)",mandatory:true,applies:"shared",note:"Salt Creek SL3. Kevin: share or own?"},
@@ -493,7 +500,6 @@ const CL=[
 {item:"InReach satellite comm",mandatory:false,applies:"shared",note:"Confirm subscription active."},
 {item:"Buff / neck gaiter",mandatory:false,applies:"all",note:"Org provides merino buff."},
 ];
-
 const PFH=[
 {id:"crit",cat:"🚨 Critical / Mandatory",type:"critical",items:[
 {item:"Water filter (Sawyer Squeeze)",applies:"shared",note:"MANDATORY. Buy ASAP if not owned."},
@@ -538,7 +544,6 @@ const PFH=[
 {item:"Kevin's lodging Jun 27?",applies:"k",note:"Share Postcard Cabins or book own?"},
 ]},
 ];
-
 const GAPS=[
 {type:"info",text:"Alan: same UA744/UA2039 as Jonathan. Conf PZRFDC. Seat 22D. 31,400 mi + $11.20 + $109.62 seat upgrades."},
 {type:"info",text:"Kevin Dupuy: Southwest MCI→LAX Jun 22 (arr 6:55 AM), LAX→MCI Jun 28 (dep 3:10 PM). On trek Jun 23–27 only."},
@@ -557,8 +562,12 @@ const GAPS=[
 {type:"warn",text:"Jun 29: UA2039 at 9 AM. Leave AC Hotel ~6:30 AM. Pack night before."},
 ];
 
+// ── Render ────────────────────────────────────────────────────
 function render(){
-  const cl=clCount('cl-',CL),pf=pfhCount();
+  // Guard: only render when app screen is visible
+  if(document.getElementById('screen-app').style.display==='none') return;
+
+  const cl=clCount('cl-',CL), pf=pfhCount();
   let th='';
   TABS.forEach((t,i)=>{
     let l=esc(t);
@@ -632,7 +641,6 @@ function render(){
 }
 
 function switchTab(i){activeTab=i;render()}
-render();
 </script>
 </body>
 </html>
