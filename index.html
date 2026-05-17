@@ -6,49 +6,33 @@
 <title>HIGHLANDER Big Bear Lake 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<!-- ============================================================
-     STEP 1: CREATE A FIREBASE PROJECT
-     console.firebase.google.com → New project → Realtime Database
-     (Start in test mode) → Web app → copy firebaseConfig below
+<!-- Firebase compat (no bundler needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-     STEP 2: REPLACE the placeholder config object below with yours
-     ============================================================ -->
-<script type="module">
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+<script>
+  const firebaseConfig = {
+    apiKey:            "AIzaSyDhw-hdONjo22YsoxJ-4aLXt9854WIwagY",
+    authDomain:        "highlander-b4875.firebaseapp.com",
+    databaseURL:       "https://highlander-b4875-default-rtdb.firebaseio.com",
+    projectId:         "highlander-b4875",
+    storageBucket:     "highlander-b4875.firebasestorage.app",
+    messagingSenderId: "547927288536",
+    appId:             "1:547927288536:web:9ecd745fc8fc86d9c505ad",
+    measurementId:     "G-BWG56QFVQP"
+  };
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDhw-hdONjo22YsoxJ-4aLXt9854WIwagY",
-  authDomain: "highlander-b4875.firebaseapp.com",
-  databaseURL: "https://highlander-b4875-default-rtdb.firebaseio.com",
-  projectId: "highlander-b4875",
-  storageBucket: "highlander-b4875.firebasestorage.app",
-  messagingSenderId: "547927288536",
-  appId: "1:547927288536:web:9ecd745fc8fc86d9c505ad",
-  measurementId: "G-BWG56QFVQP"
-};
+  firebase.initializeApp(firebaseConfig);
+  const db   = firebase.database();
+  const ROOT = "hl2026";
+  let remoteChecks = {};
+  let localPerson  = null;
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-     const ROOT = "hl2026";          // all data lives under this key
-  let remoteChecks = {};          // latest snapshot from Firebase
-  let localPerson  = null;        // which hiker is using this browser
-
-  // ── Expose to non-module scripts ──────────────────────────────
   window.__fb = {
     toggle(key) {
-      if (!localPerson) { showPersonModal(); return; }
-      const fullKey = localPerson + "/" + key;
-      const next = !((remoteChecks[localPerson] || {})[key]);
-      const patch = {};
-      patch[ROOT + "/" + fullKey] = next;
-      update(ref(db), patch);
+      if (!localPerson) { document.getElementById("personModal").style.display="flex"; return; }
+      const current = !!((remoteChecks[localPerson] || {})[key]);
+      db.ref(ROOT + "/" + localPerson + "/" + key).set(!current);
     },
     isChecked(person, key) {
       return !!((remoteChecks[person] || {})[key]);
@@ -59,27 +43,25 @@ const analytics = getAnalytics(app);
       document.getElementById("personModal").style.display = "none";
       document.getElementById("personBadge").textContent =
         p === "j" ? "🔵 Jonathan" : p === "a" ? "🟣 Alan" : "🟠 Kevin";
+      const dot = document.getElementById("syncDot");
+      const txt = document.getElementById("syncText");
+      if (dot) { dot.className = "ok"; txt.textContent = "Live sync active"; }
       render();
     },
     getPerson() { return localPerson; }
   };
 
-  // ── Subscribe to Firebase ─────────────────────────────────────
-  onValue(ref(db, ROOT), snap => {
+  // Live listener — re-renders whenever any hiker checks/unchecks
+  db.ref(ROOT).on("value", snap => {
     remoteChecks = snap.val() || {};
-    render();
+    if (typeof render === "function") render();
   });
 
-  // ── Init person from localStorage ────────────────────────────
   window.addEventListener("DOMContentLoaded", () => {
     const saved = localStorage.getItem("hl_person");
     if (saved) window.__fb.setPerson(saved);
-    else showPersonModal();
+    else document.getElementById("personModal").style.display = "flex";
   });
-
-  function showPersonModal() {
-    document.getElementById("personModal").style.display = "flex";
-  }
 </script>
 
 <style>
@@ -98,26 +80,30 @@ const analytics = getAnalytics(app);
   body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
   .mono{font-family:'JetBrains Mono',monospace}
 
-  /* ── Person modal ── */
-  #personModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+  /* Modal */
+  #personModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
   .modal-box{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:32px 28px;max-width:340px;width:90%;text-align:center}
   .modal-box h2{color:var(--accent);font-size:20px;margin-bottom:8px}
-  .modal-box p{color:var(--muted);font-size:13px;margin-bottom:24px}
+  .modal-box p{color:var(--muted);font-size:13px;margin-bottom:24px;line-height:1.5}
   .person-btns{display:flex;flex-direction:column;gap:10px}
-  .person-btn{padding:12px 20px;border-radius:10px;border:2px solid;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+  .person-btn{padding:12px 20px;border-radius:10px;border:2px solid;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter .2s}
+  .person-btn:hover{filter:brightness(1.2)}
   .person-btn.j{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
   .person-btn.a{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
   .person-btn.k{background:var(--orange-bg);border-color:var(--orange);color:var(--orange)}
-  .person-btn:hover{filter:brightness(1.15)}
 
-  /* ── Header ── */
+  /* Header */
   .header{background:linear-gradient(135deg,#0f2517,#1a3a25 50%,#0d3320);border-bottom:1px solid var(--border);padding:20px 16px 14px}
   .header-inner{max-width:980px;margin:0 auto}
   .header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .header h1{font-size:20px;font-weight:700;color:var(--accent);letter-spacing:-.5px}
   .header-sub{color:var(--muted);font-size:12px;margin-top:3px}
-  #personBadge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;white-space:nowrap;flex-shrink:0}
+  #personBadge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);cursor:pointer;white-space:nowrap;flex-shrink:0;color:var(--text)}
   #personBadge:hover{border-color:var(--accent);color:var(--accent)}
+  #syncStatus{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px;margin-top:5px}
+  #syncDot{width:7px;height:7px;border-radius:50%;background:var(--warn);flex-shrink:0}
+  #syncDot.ok{background:var(--accent)}
+  #syncDot.err{background:var(--danger)}
   .stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .stat{background:rgba(74,222,128,.08);border:1px solid var(--border);border-radius:7px;padding:3px 9px;font-size:11px}
   .stat span{color:var(--dim)} .stat b{color:var(--accent)}
@@ -127,17 +113,17 @@ const analytics = getAnalytics(app);
   .hchip.a{background:var(--purple-bg);border-color:rgba(167,139,250,.3);color:var(--purple)}
   .hchip.k{background:var(--orange-bg);border-color:rgba(251,146,60,.3);color:var(--orange)}
 
-  /* ── Tabs ── */
+  /* Tabs */
   .tab-bar{background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
   .tab-bar-inner{max-width:980px;margin:0 auto;display:flex}
   .tab-btn{background:transparent;border:none;color:var(--dim);font-weight:500;font-size:12px;padding:11px 13px;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit;transition:all .2s;white-space:nowrap}
   .tab-btn.active{color:var(--accent);font-weight:700;border-bottom-color:var(--accent)}
 
-  /* ── Content ── */
+  /* Content */
   .content{max-width:980px;margin:0 auto;padding:18px 14px 60px}
   p.intro{color:var(--muted);font-size:13px;margin-bottom:14px}
 
-  /* ── Badge ── */
+  /* Badge */
   .badge{padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap;display:inline-block}
   .bg{background:var(--accent-m);color:var(--accent)}
   .by{background:var(--warn-bg);color:var(--warn)}
@@ -147,7 +133,7 @@ const analytics = getAnalytics(app);
   .bp{background:var(--purple-bg);color:var(--purple)}
   .bo{background:var(--orange-bg);color:var(--orange)}
 
-  /* ── Timeline ── */
+  /* Timeline */
   .tl-day{margin-bottom:18px}
   .tl-day-hdr{font-size:13px;font-weight:700;color:var(--accent);padding:7px 0;border-bottom:1px solid var(--border);margin-bottom:8px}
   .tl-card{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:7px}
@@ -158,7 +144,7 @@ const analytics = getAnalytics(app);
   .tl-notes{font-size:12px;color:var(--warn);margin-top:3px;line-height:1.5}
   .tl-drive{background:rgba(74,222,128,.05);border:1px dashed var(--border2);border-radius:7px;padding:7px 12px;margin-bottom:7px;font-size:12px;color:var(--muted)}
 
-  /* ── Lodging / Travel ── */
+  /* Lodging */
   .lcard{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:9px}
   .lcard-hd{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px}
   .lcard-name{font-size:13px;font-weight:700}
@@ -170,7 +156,7 @@ const analytics = getAnalytics(app);
   .sec-title{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:10px}
   .sec-title.mt{margin-top:22px}
 
-  /* ── Gear ── */
+  /* Gear */
   .gear-cat-hdr{font-size:13px;font-weight:700;padding:7px 11px;background:rgba(74,222,128,.06);border-radius:7px;border-left:3px solid var(--accent);margin-bottom:5px}
   .gear-row{display:flex;align-items:flex-start;gap:8px;padding:6px 11px;border-bottom:1px solid var(--border);font-size:13px}
   .gear-note{font-size:11px;color:var(--warn);margin-top:1px}
@@ -178,61 +164,50 @@ const analytics = getAnalytics(app);
   .gear-src{font-size:10px;color:var(--dim)}
   .gear-cat{margin-bottom:18px}
 
-  /* ── Checklist (per-person columns) ── */
+  /* Checklist */
   .cl-hdr{display:flex;align-items:center;padding:7px 11px;border-bottom:2px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);position:sticky;top:0;background:var(--bg);z-index:2}
   .cl-item-col{flex:1;min-width:0}
   .cl-pcol{width:56px;text-align:center;flex-shrink:0}
-  .cl-row{display:flex;align-items:flex-start;padding:7px 11px;border-bottom:1px solid var(--border);transition:background .15s}
+  .cl-row{display:flex;align-items:flex-start;padding:7px 11px;border-bottom:1px solid var(--border)}
   .cl-row:hover{background:rgba(74,222,128,.03)}
   .cl-item-text{font-size:13px;line-height:1.4}
   .cl-item-note{font-size:11px;color:var(--dim);margin-top:2px}
   .cl-cell{width:56px;display:flex;justify-content:center;align-items:flex-start;flex-shrink:0;padding-top:2px}
-
-  /* checkbox states: unchecked / mine-checked / others-checked / n/a */
-  .cb{width:22px;height:22px;border-radius:5px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;flex-shrink:0}
+  .cb{width:22px;height:22px;border-radius:5px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;user-select:none}
+  .cb .ck{display:none;font-size:12px;font-weight:700}
   .cb.mine{border-color:var(--accent);background:var(--accent-m)}
-  .cb.mine .ck{display:inline;color:var(--accent);font-size:12px;font-weight:700}
+  .cb.mine .ck{display:inline;color:var(--accent)}
   .cb.other-j{border-color:var(--blue);background:var(--blue-bg)}
-  .cb.other-j .ck{display:inline;color:var(--blue);font-size:12px;font-weight:700}
+  .cb.other-j .ck{display:inline;color:var(--blue)}
   .cb.other-a{border-color:var(--purple);background:var(--purple-bg)}
-  .cb.other-a .ck{display:inline;color:var(--purple);font-size:12px;font-weight:700}
+  .cb.other-a .ck{display:inline;color:var(--purple)}
   .cb.other-k{border-color:var(--orange);background:var(--orange-bg)}
-  .cb.other-k .ck{display:inline;color:var(--orange);font-size:12px;font-weight:700}
+  .cb.other-k .ck{display:inline;color:var(--orange)}
   .cb.na{border-color:var(--border);background:rgba(100,116,139,.06);cursor:default}
   .cb.na::after{content:"—";color:var(--dim);font-size:10px}
-  .ck{display:none}
-
   .cl-cat-hdr{font-size:13px;font-weight:700;margin-top:14px;margin-bottom:5px;padding:7px 11px;border-radius:7px}
   .cl-cat-hdr.critical{background:var(--danger-bg);border-left:3px solid var(--danger)}
   .cl-cat-hdr.decision{background:var(--warn-bg);border-left:3px solid var(--warn)}
   .cl-cat-hdr.normal{background:rgba(74,222,128,.06);border-left:3px solid var(--accent)}
   .cl-cat-hdr.mandatory{background:rgba(248,113,113,.06);border-left:3px solid var(--danger)}
-
   .badge-row{display:flex;gap:7px;margin-bottom:14px;margin-top:7px;flex-wrap:wrap}
 
-  /* ── Notes ── */
+  /* Notes */
   .gap-warn{background:var(--warn-bg);border:1px solid rgba(251,191,36,.25);border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:13px;line-height:1.5}
   .gap-info{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:13px;line-height:1.5}
   h3.st{font-size:13px;font-weight:700;margin-bottom:7px}
-  h3.st.acc{color:var(--accent)} h3.st.bl{color:var(--blue)} h3.st.wn{color:var(--warn)} h3.st.mt{margin-top:18px}
-
-  /* ── Sync status dot ── */
-  #syncDot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0}
-  #syncDot.ok{background:var(--accent)}
-  #syncDot.err{background:var(--danger)}
-  #syncDot.wait{background:var(--warn)}
-  #syncStatus{font-size:11px;color:var(--dim);display:flex;align-items:center;margin-top:6px}
+  h3.st.wn{color:var(--warn)} h3.st.bl{color:var(--blue)} h3.st.mt{margin-top:18px}
 
   @media(max-width:600px){.cl-pcol,.cl-cell{width:40px}.cl-hdr{font-size:10px}}
 </style>
 </head>
 <body>
 
-<!-- ── Who are you? modal ── -->
+<!-- Who are you? -->
 <div id="personModal">
   <div class="modal-box">
     <h2>⛰️ Who are you?</h2>
-    <p>Your choice is saved in this browser. You'll see everyone's checkboxes but can only check your own column.</p>
+    <p>Your choice is saved in this browser. You can only check your own column, but you'll see everyone's status live.</p>
     <div class="person-btns">
       <button class="person-btn j" onclick="window.__fb.setPerson('j')">🔵 Jonathan</button>
       <button class="person-btn a" onclick="window.__fb.setPerson('a')">🟣 Alan</button>
@@ -241,7 +216,7 @@ const analytics = getAnalytics(app);
   </div>
 </div>
 
-<!-- ── Header ── -->
+<!-- Header -->
 <div class="header"><div class="header-inner">
   <div class="header-top">
     <div>
@@ -250,7 +225,7 @@ const analytics = getAnalytics(app);
     </div>
     <div>
       <div id="personBadge" onclick="document.getElementById('personModal').style.display='flex'">👤 Select hiker</div>
-      <div id="syncStatus"><span id="syncDot" class="wait"></span> <span id="syncText">Connecting…</span></div>
+      <div id="syncStatus"><span id="syncDot"></span><span id="syncText">Connecting…</span></div>
     </div>
   </div>
   <div class="stats">
@@ -270,92 +245,56 @@ const analytics = getAnalytics(app);
 <div class="content" id="content"></div>
 
 <script>
-// ── Data ─────────────────────────────────────────────────────────────────────
-
 const TABS=["Timeline","Gear","Lodging & Travel","Checklist","Pull from Home","Notes & Gaps"];
 let activeTab=0;
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function badge(c,t){return'<span class="badge '+c+'">'+esc(t)+'</span>'}
-function whoBadge(w){if(!w||w==='—')return'';if(w.includes('Jonathan')&&!w.includes('+'))return badge('bb',w);if(w.includes('Alan')&&!w.includes('+'))return badge('bp',w);if(w.includes('Kevin')&&!w.includes('+'))return badge('bo',w);if(w==='Shared')return badge('bgr',w);return badge('bg',w)}
-function appliesTo(a){if(a==='all')return[1,1,1];if(a==='shared')return[1,1,1];if(a==='ja')return[1,1,0];if(a==='j')return[1,0,0];if(a==='a')return[0,1,0];if(a==='k')return[0,0,1];return[1,1,1]}
+function whoBadge(w){if(!w||w==='—')return'';if(w==='Jonathan')return badge('bb',w);if(w==='Alan')return badge('bp',w);if(w==='Kevin')return badge('bo',w);if(w==='Shared')return badge('bgr',w);return badge('bg',w)}
+function appliesTo(a){if(a==='all'||a==='shared')return[1,1,1];if(a==='ja')return[1,1,0];if(a==='j')return[1,0,0];if(a==='a')return[0,1,0];if(a==='k')return[0,0,1];return[1,1,1]}
 
 const PKEYS=['j','a','k'];
-const PCOLORS=['var(--blue)','var(--purple)','var(--orange)'];
 const PCLS=['other-j','other-a','other-k'];
 
-function cbHTML(key, pidx, applicable){
-  if(!applicable) return '<div class="cl-cell"><div class="cb na"></div></div>';
+function cbHTML(key,pidx,ok){
+  if(!ok)return'<div class="cl-cell"><div class="cb na"></div></div>';
   const me=window.__fb?window.__fb.getPerson():null;
   const isMe=(me===PKEYS[pidx]);
   const checked=window.__fb?window.__fb.isChecked(PKEYS[pidx],key):false;
   let cls='cb';
-  if(checked) cls+= isMe?' mine':' '+PCLS[pidx];
-  const onClick=isMe?'onclick="window.__fb.toggle(\''+key.replace(/'/g,"\\'")+'\')"':'';
-  const cursor=isMe?'':'cursor:default';
-  return'<div class="cl-cell"><div class="'+cls+'" '+onClick+' style="'+cursor+'"><span class="ck">✓</span></div></div>';
+  if(checked) cls+=' '+(isMe?'mine':PCLS[pidx]);
+  const click=isMe?'onclick="window.__fb.toggle(\''+key.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')"':'';
+  const cur=isMe?'':'cursor:default';
+  return'<div class="cl-cell"><div class="'+cls+'" '+click+' style="'+cur+'"><span class="ck">✓</span></div></div>';
 }
-
-function clHdr(){
-  return'<div class="cl-hdr"><div class="cl-item-col">Item</div>'
-   +'<div class="cl-pcol" style="color:var(--blue)">J</div>'
-   +'<div class="cl-pcol" style="color:var(--purple)">A</div>'
-   +'<div class="cl-pcol" style="color:var(--orange)">K</div>'
-   +'</div>';
-}
-
+function clHdr(){return'<div class="cl-hdr"><div class="cl-item-col">Item</div><div class="cl-pcol" style="color:var(--blue)">J</div><div class="cl-pcol" style="color:var(--purple)">A</div><div class="cl-pcol" style="color:var(--orange)">K</div></div>'}
 function clRow(key,item,showM){
   const ap=appliesTo(item.applies);
-  let b='';
-  if(showM&&item.mandatory)b+=badge('br','MANDATORY')+' ';
-  if(item.applies==='shared')b+=badge('bgr','SHARED');
-  return'<div class="cl-row"><div class="cl-item-col">'
-   +'<div class="cl-item-text">'+esc(item.item)+' '+b+'</div>'
-   +(item.note?'<div class="cl-item-note">'+esc(item.note)+'</div>':'')
-   +'</div>'
-   +cbHTML(key,0,ap[0])+cbHTML(key,1,ap[1])+cbHTML(key,2,ap[2])
-   +'</div>';
+  let b='';if(showM&&item.mandatory)b+=badge('br','MANDATORY')+' ';if(item.applies==='shared')b+=badge('bgr','SHARED');
+  return'<div class="cl-row"><div class="cl-item-col"><div class="cl-item-text">'+esc(item.item)+' '+b+'</div>'+(item.note?'<div class="cl-item-note">'+esc(item.note)+'</div>':'')+'</div>'+cbHTML(key,0,ap[0])+cbHTML(key,1,ap[1])+cbHTML(key,2,ap[2])+'</div>';
 }
+function clCount(pfx,list){let t=0,d=0;list.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],pfx+i))d++;}})});return{total:t,done:d}}
+function pfhCount(){let t=0,d=0;PFH.forEach(cat=>{cat.items.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],'pfh-'+cat.id+'-'+i))d++;}})})});return{total:t,done:d}}
 
-function clCount(pfx,list){
-  let t=0,d=0;
-  list.forEach((item,i)=>{
-    appliesTo(item.applies).forEach((y,p)=>{
-      if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],pfx+i))d++;}
-    });
-  });
-  return{total:t,done:d};
-}
-function pfhCount(){
-  let t=0,d=0;
-  PFH.forEach(cat=>{
-    cat.items.forEach((item,i)=>{
-      appliesTo(item.applies).forEach((y,p)=>{
-        if(y){t++;if(window.__fb&&window.__fb.isChecked(PKEYS[p],'pfh-'+cat.id+'-'+i))d++;}
-      });
-    });
-  });
-  return{total:t,done:d};
-}
+// ── Data ──────────────────────────────────────────────────────────────────────
 
-// ── Timeline ─────────────────────────────────────────────────────────────────
 const TL=[
 {date:"Sat, Jun 20",label:"Travel Day — PIT → LAX",items:[
 {t:"f",icon:"✈️",title:"Jonathan: PIT → LAX",detail:"UA744 | 5:55 PM → 8:07 PM (nonstop, 5h 12m)",who:"Jonathan",conf:"DG4QLW",notes:"Seat 22F. 29,600 mi + $11.20."},
-{t:"f",icon:"✈️",title:"Alan: PIT → LAX",detail:"UA744 | 5:55 PM → 8:07 PM (nonstop, 5h 12m)",who:"Alan",conf:"PZRFDC",notes:"Seat 22D. 31,400 mi + $11.20 + $109.62 seats. Same flight as Jonathan."},
+{t:"f",icon:"✈️",title:"Alan: PIT → LAX",detail:"UA744 | 5:55 PM → 8:07 PM (nonstop, 5h 12m)",who:"Alan",conf:"PZRFDC",notes:"Seat 22D. 31,400 mi + $11.20 + $109.62 seats."},
 {t:"f",icon:"🚗",title:"Pick up rental car at LAX",detail:"National Car Rental, full-size. Conf #2108681517.",who:"J+A",conf:"2108681517",notes:"Emerald Club. $531.71 est."},
 {t:"d",text:"🛣️ LAX → Residence Inn Marina del Rey — ~5 mi, 10–15 min"},
-{t:"f",icon:"🏨",title:"Check in: Residence Inn Marina del Rey",detail:"Jun 20–22, Studio King, Partial Water View. 70K pts + $46.20.",who:"J+A",conf:"70586962",notes:"Free hot breakfast. Valet $49/day."},
+{t:"f",icon:"🏨",title:"Check in: Residence Inn Marina del Rey",detail:"Jun 20–22, Studio King. 70K pts + $46.20.",who:"J+A",conf:"70586962",notes:"Free hot breakfast. Valet $49/day."},
 ]},
 {date:"Sun, Jun 21",label:"Rest / Explore LA",items:[
 {t:"f",icon:"📍",title:"Free day — Marina del Rey",detail:"Residence Inn. Last full rest day before the mountains.",who:"J+A",notes:""},
 ]},
 {date:"Mon, Jun 22",label:"Kevin arrives · Drive to Big Bear",items:[
 {t:"f",icon:"✈️",title:"Kevin: MCI → LAX",detail:"WN 4827 | 5:30 AM → 6:55 AM (nonstop, 3h 25m)",who:"Kevin",conf:"Southwest",notes:"Seat 16F. Extra Legroom."},
-{t:"f",icon:"⏰",title:"Kevin arrives LAX 6:55 AM — coordinate pickup",detail:"J+A check out Residence Inn by 11 AM. Plan timing for Kevin.",who:"All",notes:"Early checkout or Kevin waits. Confirm plan."},
+{t:"f",icon:"⏰",title:"Kevin arrives LAX 6:55 AM — coordinate pickup",detail:"J+A check out Residence Inn by 11 AM.",who:"All",notes:"Early checkout or Kevin waits. Confirm plan."},
 {t:"d",text:"🛣️ Marina del Rey → Big Bear Lake — ~115 mi, 2.5–3 hrs (I-10 E → CA-330 N)"},
 {t:"f",icon:"🏨",title:"Check in: Sessions Retreat & Hotel",detail:"Jun 22–23, Signature Two Queen. $152.42 paid.",who:"All 3",conf:"2097464310851",notes:"PACKET PICKUP Jun 22 3–7 PM here!"},
-{t:"f",icon:"📦",title:"PACKET PICKUP: Jun 22, 3–7 PM",detail:"Hiker tag, luggage tag, event map, passport, merino buff, waste bag.",who:"All 3",notes:"Verify all 3 packets."},
+{t:"f",icon:"📦",title:"PACKET PICKUP: Jun 22, 3–7 PM",detail:"Hiker tag, luggage tag, map, passport, merino buff, waste bag.",who:"All 3",notes:"Verify all 3 packets collected."},
 ]},
 {date:"Tue, Jun 23",label:"Trek Day 1",items:[
 {t:"f",icon:"📦",title:"Backup Packet Pickup: 6–7 AM",detail:"41798 Garstin Dr parking lot. Only if not done Jun 22.",who:"All 3",notes:""},
@@ -368,24 +307,23 @@ const TL=[
 {date:"Sat, Jun 27",label:"Trek Day 5 — Finish!",items:[
 {t:"f",icon:"🏁",title:"URSA MAJOR — DAY 5 (Final)",detail:"Trek finishes. Shuttle back to parking lot.",who:"All 3",notes:"Shower! Real food!"},
 {t:"d",text:"🛣️ Parking lot → Postcard Cabins — short drive within Big Bear"},
-{t:"f",icon:"🏨",title:"Check in: Postcard Cabins Big Bear",detail:"Jun 27–28, Cabin 2 Queen Bunk. 18K pts + $42.80.",who:"J+A",conf:"83779495",notes:"Kevin's Jun 27 lodging TBD — share or book own?"},
+{t:"f",icon:"🏨",title:"Check in: Postcard Cabins Big Bear",detail:"Jun 27–28, Cabin 2 Queen Bunk. 18K pts + $42.80.",who:"J+A",conf:"83779495",notes:"Kevin's Jun 27 lodging TBD."},
 ]},
 {date:"Sun, Jun 28",label:"Kevin departs · Drive to LA",items:[
 {t:"f",icon:"✈️",title:"Kevin: LAX → MCI",detail:"WN 1327 | 3:10 PM → 8:20 PM (nonstop, 3h 10m)",who:"Kevin",conf:"Southwest",notes:"Seat 15A. Must leave Big Bear by ~10 AM."},
 {t:"d",text:"🛣️ Big Bear Lake → LAX — ~115 mi, 2.5–3 hrs. Depart Big Bear ~10 AM."},
-{t:"f",icon:"🚗",title:"Drop Kevin at LAX, continue to hotel",detail:"Drop Kevin at terminal, then ~10 min to AC Hotel El Segundo.",who:"All",notes:"Or Kevin rideshares if J+A want more time in Big Bear."},
+{t:"f",icon:"🚗",title:"Drop Kevin at LAX, continue to hotel",detail:"Drop Kevin at terminal, ~10 min to AC Hotel.",who:"All",notes:"Or Kevin rideshares if J+A want more time."},
 {t:"d",text:"🛣️ LAX → AC Hotel El Segundo — ~3 mi, 10 min"},
 {t:"f",icon:"🏨",title:"Check in: AC Hotel LA South Bay",detail:"Jun 28–29, 1 King + Sofa Bed. 1,800 pts (FNA).",who:"J+A",conf:"6Q0U5XZSSV",notes:"Parking $39/day. Leave by ~6:30 AM tomorrow."},
 ]},
 {date:"Mon, Jun 29",label:"Fly home — LAX → PIT",items:[
-{t:"f",icon:"⏰",title:"Leave AC Hotel by ~6:30 AM",detail:"Return rental car, check in for 9 AM flights. Pack night before.",who:"J+A",notes:"Hotel checkout 11 AM but flight at 9 AM."},
+{t:"f",icon:"⏰",title:"Leave AC Hotel by ~6:30 AM",detail:"Return rental car at LAX, check in for 9 AM flights.",who:"J+A",notes:"Pack the night before."},
 {t:"f",icon:"🚗",title:"Return rental car at LAX",detail:"National Car Rental drop-off.",who:"J+A",conf:"2108681517",notes:""},
 {t:"f",icon:"✈️",title:"Jonathan: LAX → PIT",detail:"UA2039 | 9:00 AM → 4:51 PM (nonstop, 4h 51m)",who:"Jonathan",conf:"DG4QLW",notes:"Seat 22F."},
 {t:"f",icon:"✈️",title:"Alan: LAX → PIT",detail:"UA2039 | 9:00 AM → 4:51 PM (nonstop, 4h 51m)",who:"Alan",conf:"PZRFDC",notes:"Seat 22D."},
 ]},
 ];
 
-// ── Lodging ───────────────────────────────────────────────────────────────────
 const LODGING=[
 {dates:"Jun 20–22",name:"Residence Inn Marina del Rey",conf:"70586962",room:"Studio, 1 King, Partial Water View",cost:"70,000 pts + $46.20",notes:"Free hot breakfast. Valet $49/day. Cancel by Jun 18.",checkin:"4:00 PM",checkout:"11:00 AM",who:"Jonathan + Alan"},
 {dates:"Jun 22–23",name:"Sessions Retreat & Hotel (Big Bear)",conf:"2097464310851",room:"Signature Two Queen",cost:"$152.42 (paid)",notes:"PACKET PICKUP Jun 22 3–7 PM.",checkin:"4:00 PM",checkout:"11:00 AM",who:"All 3"},
@@ -394,16 +332,15 @@ const LODGING=[
 {dates:"Jun 28–29",name:"AC Hotel LA South Bay (El Segundo)",conf:"6Q0U5XZSSV",room:"1 King + Sofa Bed",cost:"1,800 pts (FNA)",notes:"Near LAX. Parking $39/day. Leave ~6:30 AM.",checkin:"4:00 PM",checkout:"11:00 AM",who:"Jonathan + Alan"},
 ];
 const TRAV=[
-{type:"✈️",label:"Jonathan: PIT→LAX",date:"Sat Jun 20",detail:"UA744 | 5:55p→8:07p (nonstop)",conf:"DG4QLW",notes:"Seat 22F."},
-{type:"✈️",label:"Alan: PIT→LAX",date:"Sat Jun 20",detail:"UA744 | 5:55p→8:07p (nonstop)",conf:"PZRFDC",notes:"Seat 22D."},
-{type:"✈️",label:"Kevin: MCI→LAX",date:"Mon Jun 22",detail:"WN 4827 | 5:30a→6:55a (nonstop)",conf:"Southwest",notes:"Seat 16F."},
+{type:"✈️",label:"Jonathan: PIT→LAX",date:"Sat Jun 20",detail:"UA744 | 5:55p→8:07p",conf:"DG4QLW",notes:"Seat 22F."},
+{type:"✈️",label:"Alan: PIT→LAX",date:"Sat Jun 20",detail:"UA744 | 5:55p→8:07p",conf:"PZRFDC",notes:"Seat 22D."},
+{type:"✈️",label:"Kevin: MCI→LAX",date:"Mon Jun 22",detail:"WN 4827 | 5:30a→6:55a",conf:"Southwest",notes:"Seat 16F."},
 {type:"🚗",label:"National Car Rental (LAX)",date:"Jun 20–29",detail:"Full-size. LAX pick up/return.",conf:"2108681517",notes:"$531.71."},
-{type:"✈️",label:"Kevin: LAX→MCI",date:"Sun Jun 28",detail:"WN 1327 | 3:10p→8:20p (nonstop)",conf:"Southwest",notes:"Seat 15A."},
-{type:"✈️",label:"Jonathan: LAX→PIT",date:"Mon Jun 29",detail:"UA2039 | 9:00a→4:51p (nonstop)",conf:"DG4QLW",notes:"Seat 22F."},
-{type:"✈️",label:"Alan: LAX→PIT",date:"Mon Jun 29",detail:"UA2039 | 9:00a→4:51p (nonstop)",conf:"PZRFDC",notes:"Seat 22D."},
+{type:"✈️",label:"Kevin: LAX→MCI",date:"Sun Jun 28",detail:"WN 1327 | 3:10p→8:20p",conf:"Southwest",notes:"Seat 15A."},
+{type:"✈️",label:"Jonathan: LAX→PIT",date:"Mon Jun 29",detail:"UA2039 | 9:00a→4:51p",conf:"DG4QLW",notes:"Seat 22F."},
+{type:"✈️",label:"Alan: LAX→PIT",date:"Mon Jun 29",detail:"UA2039 | 9:00a→4:51p",conf:"PZRFDC",notes:"Seat 22D."},
 ];
 
-// ── Gear ─────────────────────────────────────────────────────────────────────
 const GEAR=[
 {name:"🎒 Packs & Bags",items:[
 {item:"Gregory Baltoro 65L (M)",who:"Jonathan",src:"Backcountry",s:"owned"},
@@ -441,7 +378,6 @@ const GEAR=[
 ]},
 {name:"👖 Bottoms",items:[
 {item:"Sahara Convertible Pants — 6+ pairs",who:"J+A",src:"REI",s:"owned",note:"Some bookend/sale"},
-{item:"Sahara Stretch Convertible",who:"—",src:"REI",s:"processing"},
 {item:"Ferrosi Convertible (38/S)",who:"Jonathan",src:"Backcountry",s:"owned"},
 {item:"Arch Rock Convertible (M)",who:"Alan",src:"REI",s:"owned"},
 {item:"DWR Nylon Convertible (S)",who:"Alan",src:"REI",s:"owned"},
@@ -457,7 +393,6 @@ const GEAR=[
 {item:"Liner Gloves (L)",who:"Jonathan",src:"Backcountry",s:"owned"},
 {item:"Liner Gloves (M)",who:"Alan",src:"Backcountry",s:"owned"},
 {item:"Basin Belt L",who:"Jonathan",src:"Backcountry",s:"owned"},
-{item:"Basin Belt (REI)",who:"—",src:"REI",s:"processing"},
 {item:"Ferrosi Gaiters L",who:"Jonathan",src:"Backcountry",s:"owned"},
 {item:"Ferrosi Gaiters M",who:"Alan",src:"Backcountry",s:"owned"},
 {item:"BD Spot 400-R Headlamps ×2",who:"J+A",src:"Backcountry",s:"owned"},
@@ -470,14 +405,13 @@ const GEAR=[
 ]},
 ];
 
-// ── Checklist ─────────────────────────────────────────────────────────────────
 const CL=[
 {item:"Backpack (50–65L)",mandatory:true,applies:"all",note:"Baltoro (J), Atmos (A), Kevin TBD"},
-{item:"Tent (3-season)",mandatory:true,applies:"shared",note:"Salt Creek SL3 3P. Kevin: share or own?"},
+{item:"Tent (3-season)",mandatory:true,applies:"shared",note:"Salt Creek SL3. Kevin: share or own?"},
 {item:"Sleeping bag (≤20°F)",mandatory:true,applies:"all",note:"NEMO Disco (J+A). Kevin: own bag."},
 {item:"Sleeping pad (insulated)",mandatory:true,applies:"all",note:"NEMO Tensor (J+A). Kevin: own pad."},
 {item:"Headlamp + batteries",mandatory:true,applies:"all",note:"BD Spot 400-R (J+A). Kevin: own."},
-{item:"First aid kit",mandatory:true,applies:"shared",note:"1+ per group. Moleskin, ibuprofen, bandages."},
+{item:"First aid kit",mandatory:true,applies:"shared",note:"1+ per group."},
 {item:"Water — min 4L at start",mandatory:true,applies:"all",note:"Reservoirs + bottles. Kevin: own."},
 {item:"Water filter / purification",mandatory:true,applies:"shared",note:"CRITICAL. Sawyer Squeeze or similar."},
 {item:"Rain jacket / shell",mandatory:true,applies:"all",note:"Torrentshell (J+A). Kevin: own."},
@@ -501,13 +435,12 @@ const CL=[
 {item:"Buff / neck gaiter",mandatory:false,applies:"all",note:"Org provides merino buff."},
 ];
 
-// ── Pull from Home ─────────────────────────────────────────────────────────────
 const PFH=[
 {id:"crit",cat:"🚨 Critical / Mandatory",type:"critical",items:[
 {item:"Water filter (Sawyer Squeeze)",applies:"shared",note:"MANDATORY. Buy ASAP if not owned."},
 {item:"First aid kit",applies:"shared",note:"Mandatory at gear check."},
 {item:"Whistle",applies:"all",note:"Often on pack sternum strap."},
-{item:"TP + trowel + waste bags",applies:"shared",note:"Dig catholes 6–8\", 200 ft from water."},
+{item:"TP + trowel + waste bags",applies:"shared",note:'Dig catholes 6–8", 200 ft from water.'},
 {item:"Sunscreen SPF 50+ + lip balm",applies:"all",note:"7,000 ft UV. Reapply every 2 hrs."},
 {item:"Sunglasses (UV400)",applies:"all",note:"Mandatory at altitude."},
 ]},
@@ -528,7 +461,7 @@ const PFH=[
 {id:"elec",cat:"🔋 Electronics",type:"normal",items:[
 {item:"Power bank 10,000+ mAh",applies:"all",note:"5 days off-grid."},
 {item:"Charging cables",applies:"all",note:"USB-C / Lightning."},
-{item:"InReach — confirm subscription",applies:"shared",note:"Test messaging. Emergency contacts."},
+{item:"InReach — confirm subscription",applies:"shared",note:"Test messaging. Update emergency contacts."},
 {item:"Offline maps (Gaia / AllTrails)",applies:"all",note:"No cell signal on trail."},
 ]},
 {id:"pers",cat:"🩲 Personal Items",type:"normal",items:[
@@ -554,7 +487,7 @@ const GAPS=[
 {type:"info",text:"Format: 5-day Ursa Major. Pack 33–37 lbs. Shuttle from 41798 Garstin Dr."},
 {type:"info",text:"Packet Pickup: Jun 22 3–7 PM at Sessions Retreat, and/or Jun 23 6–7 AM at parking lot."},
 {type:"info",text:"Org provides: checkpoint meals, gas cartridge, merino buff, waste bag, hiker tag, luggage tag, map, passport."},
-{type:"info",text:"Mid-layer surplus (J+A): 2× Nano Puffs, 2+ Better Sweaters, 2× Highliners, Smartwool hoodies. Pick final carry per hiker."},
+{type:"info",text:"Mid-layer surplus (J+A): 2× Nano Puffs, 2+ Better Sweaters, 2× Highliners, Smartwool hoodies. Decide final carry per hiker."},
 {type:"warn",text:"Water filter — #1 critical gap. MUST carry for Ursa Major."},
 {type:"warn",text:"Kevin's gear status unknown — needs pack, tent (or share), bag, pad, headlamp, shell, insulation. Confirm ASAP."},
 {type:"warn",text:"Kevin arrives LAX 6:55 AM Jun 22 — J+A checkout 11 AM. Coordinate: early checkout or Kevin waits?"},
@@ -568,15 +501,19 @@ const GAPS=[
 // ── Render ────────────────────────────────────────────────────────────────────
 function render(){
   const cl=clCount('cl-',CL),pf=pfhCount();
-  // tabs
   let th='';
-  TABS.forEach((t,i)=>{let l=esc(t);if(i===3)l+=' ('+cl.done+'/'+cl.total+')';if(i===4)l+=' ('+pf.done+'/'+pf.total+')';th+='<button class="tab-btn'+(i===activeTab?' active':'')+'" onclick="switchTab('+i+')">'+l+'</button>'});
+  TABS.forEach((t,i)=>{
+    let l=esc(t);
+    if(i===3)l+=' ('+cl.done+'/'+cl.total+')';
+    if(i===4)l+=' ('+pf.done+'/'+pf.total+')';
+    th+='<button class="tab-btn'+(i===activeTab?' active':'')+'" onclick="switchTab('+i+')">'+l+'</button>';
+  });
   document.getElementById('tabBar').innerHTML=th;
 
   let h='';
 
   if(activeTab===0){
-    h+='<p class="intro">Day-by-day travel. Trek days shown on-trail. 🛣️ lines show driving segments.</p>';
+    h+='<p class="intro">Day-by-day travel. 🛣️ lines show driving segments with distance/time.</p>';
     TL.forEach(day=>{
       h+='<div class="tl-day"><div class="tl-day-hdr">📅 '+esc(day.date)+' — '+esc(day.label)+'</div>';
       day.items.forEach(it=>{
@@ -615,7 +552,7 @@ function render(){
   }
 
   if(activeTab===3){
-    h+='<p class="intro">Each person checks their own column. Shared items get a checkbox per person for confirmation. Others\' checks show in their color.</p>';
+    h+='<p class="intro">Check your own column. Others\' checks appear in their color live.</p>';
     h+='<div class="badge-row">'+badge('bg',cl.done+' checked')+' '+badge('bgr',(cl.total-cl.done)+' remaining')+'</div>';
     h+=clHdr();
     h+='<div class="cl-cat-hdr mandatory">🔴 Mandatory Gear</div>';
@@ -632,11 +569,7 @@ function render(){
       h+='<div class="cl-cat-hdr '+cat.type+'">'+esc(cat.cat)+'</div>';
       cat.items.forEach((g,i)=>{
         const ap=appliesTo(g.applies);
-        h+='<div class="cl-row"><div class="cl-item-col"><div class="cl-item-text">'+esc(g.item)+(g.applies==='shared'?' '+badge('bgr','SHARED'):'')+'</div>'+(g.note?'<div class="cl-item-note">'+esc(g.note)+'</div>':'')+'</div>'
-         +cbHTML('pfh-'+cat.id+'-'+i,0,ap[0])
-         +cbHTML('pfh-'+cat.id+'-'+i,1,ap[1])
-         +cbHTML('pfh-'+cat.id+'-'+i,2,ap[2])
-         +'</div>';
+        h+='<div class="cl-row"><div class="cl-item-col"><div class="cl-item-text">'+esc(g.item)+(g.applies==='shared'?' '+badge('bgr','SHARED'):'')+'</div>'+(g.note?'<div class="cl-item-note">'+esc(g.note)+'</div>':'')+'</div>'+cbHTML('pfh-'+cat.id+'-'+i,0,ap[0])+cbHTML('pfh-'+cat.id+'-'+i,1,ap[1])+cbHTML('pfh-'+cat.id+'-'+i,2,ap[2])+'</div>';
       });
     });
   }
@@ -653,21 +586,6 @@ function render(){
 }
 
 function switchTab(i){activeTab=i;render()}
-
-// ── Firebase sync status indicator ────────────────────────────────────────────
-(function pollStatus(){
-  const dot=document.getElementById('syncDot');
-  const txt=document.getElementById('syncText');
-  if(!dot)return;
-  if(window.__fb&&window.__fb.getPerson()!==null){
-    dot.className='ok';txt.textContent='Live sync active';
-  } else {
-    dot.className='wait';txt.textContent='Select your name to sync';
-  }
-  setTimeout(pollStatus,2000);
-})();
-
-// Initial render (will re-render when Firebase data arrives)
 render();
 </script>
 </body>
