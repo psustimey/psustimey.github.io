@@ -25,9 +25,7 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
   .mono{font-family:'JetBrains Mono',monospace}
-
-  /* All screens hidden by default — JS controls visibility */
-  #screen-login, #screen-denied, #screen-app { display:none; }
+  #screen-login,#screen-denied,#screen-app{display:none}
 
   /* Login */
   #screen-login{min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a1a0f,#0f2517 50%,#0a1a0f)}
@@ -40,13 +38,17 @@
   .login-note{color:var(--dim);font-size:11px;margin-top:16px}
 
   /* Denied */
-  #screen-denied{min-height:100vh;align-items:center;justify-content:center;}
+  #screen-denied{min-height:100vh;align-items:center;justify-content:center}
   .denied-box{background:var(--card);border:1px solid rgba(248,113,113,.3);border-radius:20px;padding:40px;max-width:360px;width:90%;text-align:center}
   .denied-box h2{color:var(--danger);font-size:18px;margin-bottom:10px}
   .denied-box p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:6px}
-  #deniedEmail{color:var(--text);font-weight:600}
   .denied-btn{margin-top:24px;padding:10px 20px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit}
   .denied-btn:hover{border-color:var(--danger);color:var(--danger)}
+
+  /* Loading spinner */
+  .loading{display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--muted);font-size:13px;gap:10px}
+  .spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
   /* Header */
   .header{background:linear-gradient(135deg,#0f2517,#1a3a25 50%,#0d3320);border-bottom:1px solid var(--border);padding:20px 16px 14px}
@@ -153,7 +155,6 @@
   .gap-info{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:13px;line-height:1.5}
   h3.st{font-size:13px;font-weight:700;margin-bottom:7px}
   h3.st.wn{color:var(--warn)} h3.st.bl{color:var(--blue)} h3.st.mt{margin-top:18px}
-
   @media(max-width:600px){.cl-pcol,.cl-cell{width:40px}.cl-hdr{font-size:10px}}
 </style>
 </head>
@@ -173,7 +174,7 @@
   </div>
 </div>
 
-<!-- Access denied -->
+<!-- Denied -->
 <div id="screen-denied">
   <div class="denied-box">
     <h2>🚫 Access Denied</h2>
@@ -216,7 +217,7 @@
 </div>
 
 <script>
-// ── Firebase init ─────────────────────────────────────────────
+// ── Firebase ──────────────────────────────────────────────────
 firebase.initializeApp({
   apiKey:            "AIzaSyDhw-hdONjo22YsoxJ-4aLXt9854WIwagY",
   authDomain:        "highlander-b4875.firebaseapp.com",
@@ -226,7 +227,6 @@ firebase.initializeApp({
   messagingSenderId: "547927288536",
   appId:             "1:547927288536:web:9ecd745fc8fc86d9c505ad"
 });
-
 const auth = firebase.auth();
 const db   = firebase.database();
 const ROOT = "hl2026";
@@ -234,180 +234,94 @@ const ROOT = "hl2026";
 // ── Whitelist ─────────────────────────────────────────────────
 const ALLOWED = {
   "jonathanholman@gmail.com": "j",
-  "avschaffranek@gmail.com":  "a",
-  "kpdupuy@gmail.com": "k",
+  // "alans.email@gmail.com":  "a",
+  // "kevins.email@gmail.com": "k",
 };
 
 // ── State ─────────────────────────────────────────────────────
 let remoteChecks = {};
+let tripData     = null;   // loaded from Firebase post-auth
 let localPerson  = null;
 let dbListening  = false;
-
-// ── Screen helper ─────────────────────────────────────────────
-function showScreen(name) {
-  ["login","denied","app"].forEach(id => {
-    const el = document.getElementById("screen-" + id);
-    el.style.display = (id === name)
-      ? (id === "login" || id === "denied" ? "flex" : "block")
-      : "none";
-  });
-}
-
-// ── Auth actions ──────────────────────────────────────────────
-function signInWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(err => {
-    console.error("Sign-in error:", err.code, err.message);
-  });
-}
-
-function doSignOut() {
-  if (dbListening) {
-    db.ref(ROOT).off();
-    dbListening = false;
-  }
-  localPerson = null;
-  remoteChecks = {};
-  auth.signOut();
-}
-
-// ── Auth state listener ───────────────────────────────────────
-auth.onAuthStateChanged(user => {
-  if (!user) {
-    showScreen("login");
-    return;
-  }
-
-  const email  = user.email ? user.email.toLowerCase() : "";
-  const person = ALLOWED[email];
-
-  if (!person) {
-    document.getElementById("deniedEmail").textContent = user.email;
-    showScreen("denied");
-    return;
-  }
-
-  // Authorized — set up app
-  localPerson = person;
-  document.getElementById("userEmail").textContent   = user.email;
-  document.getElementById("personBadge").textContent =
-    person === "j" ? "🔵 Jonathan" :
-    person === "a" ? "🟣 Alan" : "🟠 Kevin";
-
-  // Show app screen first so DOM elements exist for render()
-  showScreen("app");
-
-  // Then start DB listener and render
-  if (!dbListening) {
-    dbListening = true;
-    db.ref(ROOT).on("value", snap => {
-      remoteChecks = snap.val() || {};
-      render();
-    });
-  } else {
-    render();
-  }
-});
-
-// ── App logic ─────────────────────────────────────────────────
 const TABS   = ["Timeline","Gear","Lodging & Travel","Checklist","Pull from Home","Notes & Gaps"];
 const PKEYS  = ["j","a","k"];
 const PCLS   = ["other-j","other-a","other-k"];
 let activeTab = 0;
 
+// ── Screen helper ─────────────────────────────────────────────
+function showScreen(name) {
+  ["login","denied","app"].forEach(id => {
+    const el = document.getElementById("screen-"+id);
+    el.style.display = id===name ? (id==="app"?"block":"flex") : "none";
+  });
+}
+
+// ── Auth ──────────────────────────────────────────────────────
+function signInWithGoogle() {
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>console.error(e));
+}
+function doSignOut() {
+  if(dbListening){ db.ref(ROOT).off(); dbListening=false; }
+  localPerson=null; remoteChecks={}; tripData=null;
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+  if(!user){ showScreen("login"); return; }
+  const email  = (user.email||"").toLowerCase();
+  const person = ALLOWED[email];
+  if(!person){
+    document.getElementById("deniedEmail").textContent = user.email;
+    showScreen("denied"); return;
+  }
+  localPerson = person;
+  document.getElementById("userEmail").textContent   = user.email;
+  document.getElementById("personBadge").textContent =
+    person==="j"?"🔵 Jonathan":person==="a"?"🟣 Alan":"🟠 Kevin";
+  showScreen("app");
+  // Show loading state immediately
+  document.getElementById("content").innerHTML =
+    '<div class="loading"><div class="spinner"></div>Loading trip data…</div>';
+  renderTabs();
+
+  if(!dbListening){
+    dbListening = true;
+    // Listen to entire hl2026 node — checks + tripdata
+    db.ref(ROOT).on("value", snap => {
+      const val    = snap.val() || {};
+      remoteChecks = {};
+      ["j","a","k"].forEach(p=>{ if(val[p]) remoteChecks[p]=val[p]; });
+      if(val.tripdata) tripData = val.tripdata;
+      render();
+    });
+  }
+});
+
+// ── Helpers ───────────────────────────────────────────────────
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function badge(c,t){return'<span class="badge '+c+'">'+esc(t)+'</span>'}
 function whoBadge(w){if(!w||w==='—')return'';if(w==='Jonathan')return badge('bb',w);if(w==='Alan')return badge('bp',w);if(w==='Kevin')return badge('bo',w);if(w==='Shared')return badge('bgr',w);return badge('bg',w)}
 function appliesTo(a){if(a==='all'||a==='shared')return[1,1,1];if(a==='ja')return[1,1,0];if(a==='j')return[1,0,0];if(a==='a')return[0,1,0];if(a==='k')return[0,0,1];return[1,1,1]}
-
-function fbToggle(key) {
-  if (!localPerson) return;
-  const current = !!((remoteChecks[localPerson] || {})[key]);
-  db.ref(ROOT + "/" + localPerson + "/" + key).set(!current);
-}
-function fbIsChecked(person, key) { return !!((remoteChecks[person] || {})[key]); }
-
+function fbToggle(key){if(!localPerson)return;const cur=!!((remoteChecks[localPerson]||{})[key]);db.ref(ROOT+"/"+localPerson+"/"+key).set(!cur)}
+function fbChecked(p,k){return!!((remoteChecks[p]||{})[k])}
 function cbHTML(key,pidx,ok){
   if(!ok)return'<div class="cl-cell"><div class="cb na"></div></div>';
-  const isMe=(localPerson===PKEYS[pidx]);
-  const checked=fbIsChecked(PKEYS[pidx],key);
-  let cls='cb';
-  if(checked)cls+=' '+(isMe?'mine':PCLS[pidx]);
+  const isMe=(localPerson===PKEYS[pidx]),checked=fbChecked(PKEYS[pidx],key);
+  let cls='cb';if(checked)cls+=' '+(isMe?'mine':PCLS[pidx]);
   const click=isMe?'onclick="fbToggle(\''+key.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')"':'';
   return'<div class="cl-cell"><div class="'+cls+'" '+click+' style="'+(isMe?'':'cursor:default')+'"><span class="ck">✓</span></div></div>';
 }
 function clHdr(){return'<div class="cl-hdr"><div class="cl-item-col">Item</div><div class="cl-pcol" style="color:var(--blue)">J</div><div class="cl-pcol" style="color:var(--purple)">A</div><div class="cl-pcol" style="color:var(--orange)">K</div></div>'}
 function clRow(key,item,showM){
-  const ap=appliesTo(item.applies);
-  let b='';if(showM&&item.mandatory)b+=badge('br','MANDATORY')+' ';if(item.applies==='shared')b+=badge('bgr','SHARED');
+  const ap=appliesTo(item.applies);let b='';
+  if(showM&&item.mandatory)b+=badge('br','MANDATORY')+' ';
+  if(item.applies==='shared')b+=badge('bgr','SHARED');
   return'<div class="cl-row"><div class="cl-item-col"><div class="cl-item-text">'+esc(item.item)+' '+b+'</div>'+(item.note?'<div class="cl-item-note">'+esc(item.note)+'</div>':'')+'</div>'+cbHTML(key,0,ap[0])+cbHTML(key,1,ap[1])+cbHTML(key,2,ap[2])+'</div>';
 }
-function clCount(pfx,list){let t=0,d=0;list.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(fbIsChecked(PKEYS[p],pfx+i))d++;}})});return{total:t,done:d}}
-function pfhCount(){let t=0,d=0;PFH.forEach(cat=>{cat.items.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(fbIsChecked(PKEYS[p],'pfh-'+cat.id+'-'+i))d++;}})})});return{total:t,done:d}}
+function clCount(pfx,list){let t=0,d=0;list.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(fbChecked(PKEYS[p],pfx+i))d++;}})});return{total:t,done:d}}
+function pfhCount(){let t=0,d=0;PFH.forEach(cat=>{cat.items.forEach((item,i)=>{appliesTo(item.applies).forEach((y,p)=>{if(y){t++;if(fbChecked(PKEYS[p],'pfh-'+cat.id+'-'+i))d++;}})})});return{total:t,done:d}}
 
-// ── Data ──────────────────────────────────────────────────────
-const TL=[
-{date:"Sat, Jun 20",label:"Travel Day — PIT → LAX",items:[
-{t:"f",icon:"✈️",title:"Jonathan: PIT → LAX",detail:"UA744 | 5:55 PM → 8:07 PM (nonstop, 5h 12m)",who:"Jonathan",conf:"DG4QLW",notes:"Seat 22F. 29,600 mi + $11.20."},
-{t:"f",icon:"✈️",title:"Alan: PIT → LAX",detail:"UA744 | 5:55 PM → 8:07 PM (nonstop, 5h 12m)",who:"Alan",conf:"PZRFDC",notes:"Seat 22D. 31,400 mi + $11.20 + $109.62 seats."},
-{t:"f",icon:"🚗",title:"Pick up rental car at LAX",detail:"National Car Rental, full-size. Conf #2108681517.",who:"J+A",conf:"2108681517",notes:"Emerald Club. $531.71 est."},
-{t:"d",text:"🛣️ LAX → Residence Inn Marina del Rey — ~5 mi, 10–15 min"},
-{t:"f",icon:"🏨",title:"Check in: Residence Inn Marina del Rey",detail:"Jun 20–22, Studio King. 70K pts + $46.20.",who:"J+A",conf:"70586962",notes:"Free hot breakfast. Valet $49/day."},
-]},
-{date:"Sun, Jun 21",label:"Rest / Explore LA",items:[
-{t:"f",icon:"📍",title:"Free day — Marina del Rey",detail:"Residence Inn. Last full rest day before the mountains.",who:"J+A",notes:""},
-]},
-{date:"Mon, Jun 22",label:"Kevin arrives · Drive to Big Bear",items:[
-{t:"f",icon:"✈️",title:"Kevin: MCI → LAX",detail:"WN 4827 | 5:30 AM → 6:55 AM (nonstop, 3h 25m)",who:"Kevin",conf:"Southwest",notes:"Seat 16F. Extra Legroom."},
-{t:"f",icon:"⏰",title:"Kevin arrives LAX 6:55 AM — coordinate pickup",detail:"J+A check out Residence Inn by 11 AM.",who:"All",notes:"Early checkout or Kevin waits. Confirm plan."},
-{t:"d",text:"🛣️ Marina del Rey → Big Bear Lake — ~115 mi, 2.5–3 hrs (I-10 E → CA-330 N)"},
-{t:"f",icon:"🏨",title:"Check in: Sessions Retreat & Hotel",detail:"Jun 22–23, Signature Two Queen. $152.42 paid.",who:"All 3",conf:"2097464310851",notes:"PACKET PICKUP Jun 22 3–7 PM here!"},
-{t:"f",icon:"📦",title:"PACKET PICKUP: Jun 22, 3–7 PM",detail:"Hiker tag, luggage tag, map, passport, merino buff, waste bag.",who:"All 3",notes:"Verify all 3 packets collected."},
-]},
-{date:"Tue, Jun 23",label:"Trek Day 1",items:[
-{t:"f",icon:"📦",title:"Backup Packet Pickup: 6–7 AM",detail:"41798 Garstin Dr parking lot. Only if not done Jun 22.",who:"All 3",notes:""},
-{t:"f",icon:"🚐",title:"Shuttle to trailhead",detail:"From 41798 Garstin Dr. Gear check — first aid & water filter mandatory.",who:"All 3",notes:""},
-{t:"f",icon:"⛰️",title:"URSA MAJOR — DAY 1",detail:"5-day trek begins. Org provides meals at checkpoints + gas cartridge.",who:"All 3",notes:""},
-]},
-{date:"Wed–Fri, Jun 24–26",label:"Trek Days 2–4",items:[
-{t:"f",icon:"⛰️",title:"URSA MAJOR — DAYS 2–4",detail:"On trail. San Bernardino Mountains, 7,000 ft.",who:"All 3",notes:""},
-]},
-{date:"Sat, Jun 27",label:"Trek Day 5 — Finish!",items:[
-{t:"f",icon:"🏁",title:"URSA MAJOR — DAY 5 (Final)",detail:"Trek finishes. Shuttle back to parking lot.",who:"All 3",notes:"Shower! Real food!"},
-{t:"d",text:"🛣️ Parking lot → Postcard Cabins — short drive within Big Bear"},
-{t:"f",icon:"🏨",title:"Check in: Postcard Cabins Big Bear",detail:"Jun 27–28, Cabin 2 Queen Bunk. 18K pts + $42.80.",who:"J+A",conf:"83779495",notes:"Kevin's Jun 27 lodging TBD."},
-]},
-{date:"Sun, Jun 28",label:"Kevin departs · Drive to LA",items:[
-{t:"f",icon:"✈️",title:"Kevin: LAX → MCI",detail:"WN 1327 | 3:10 PM → 8:20 PM (nonstop, 3h 10m)",who:"Kevin",conf:"Southwest",notes:"Seat 15A. Must leave Big Bear by ~10 AM."},
-{t:"d",text:"🛣️ Big Bear Lake → LAX — ~115 mi, 2.5–3 hrs. Depart Big Bear ~10 AM."},
-{t:"f",icon:"🚗",title:"Drop Kevin at LAX, continue to hotel",detail:"Drop Kevin at terminal, ~10 min to AC Hotel.",who:"All",notes:"Or Kevin rideshares if J+A want more time."},
-{t:"d",text:"🛣️ LAX → AC Hotel El Segundo — ~3 mi, 10 min"},
-{t:"f",icon:"🏨",title:"Check in: AC Hotel LA South Bay",detail:"Jun 28–29, 1 King + Sofa Bed. 1,800 pts (FNA).",who:"J+A",conf:"6Q0U5XZSSV",notes:"Parking $39/day. Leave by ~6:30 AM tomorrow."},
-]},
-{date:"Mon, Jun 29",label:"Fly home — LAX → PIT",items:[
-{t:"f",icon:"⏰",title:"Leave AC Hotel by ~6:30 AM",detail:"Return rental car at LAX, check in for 9 AM flights.",who:"J+A",notes:"Pack the night before."},
-{t:"f",icon:"🚗",title:"Return rental car at LAX",detail:"National Car Rental drop-off.",who:"J+A",conf:"2108681517",notes:""},
-{t:"f",icon:"✈️",title:"Jonathan: LAX → PIT",detail:"UA2039 | 9:00 AM → 4:51 PM (nonstop, 4h 51m)",who:"Jonathan",conf:"DG4QLW",notes:"Seat 22F."},
-{t:"f",icon:"✈️",title:"Alan: LAX → PIT",detail:"UA2039 | 9:00 AM → 4:51 PM (nonstop, 4h 51m)",who:"Alan",conf:"PZRFDC",notes:"Seat 22D."},
-]},
-];
-
-const LODGING=[
-{dates:"Jun 20–22",name:"Residence Inn Marina del Rey",conf:"70586962",room:"Studio, 1 King, Partial Water View",cost:"70,000 pts + $46.20",notes:"Free hot breakfast. Valet $49/day. Cancel by Jun 18.",checkin:"4:00 PM",checkout:"11:00 AM",who:"Jonathan + Alan"},
-{dates:"Jun 22–23",name:"Sessions Retreat & Hotel (Big Bear)",conf:"2097464310851",room:"Signature Two Queen",cost:"$152.42 (paid)",notes:"PACKET PICKUP Jun 22 3–7 PM.",checkin:"4:00 PM",checkout:"11:00 AM",who:"All 3"},
-{dates:"Jun 23–27",name:"HIGHLANDER Ursa Major Trek",conf:"Registration",room:"Salt Creek SL3 Tent",cost:"Event reg",notes:"Org provides meals, gas cartridge, merino buff.",who:"All 3"},
-{dates:"Jun 27–28",name:"Postcard Cabins Big Bear",conf:"83779495",room:"Cabin, 2 Queen Bunk",cost:"18,000 pts + $42.80",notes:"Contactless check-in. Kevin TBD.",checkin:"4:00 PM",checkout:"11:00 AM",who:"J+A (Kevin TBD)"},
-{dates:"Jun 28–29",name:"AC Hotel LA South Bay (El Segundo)",conf:"6Q0U5XZSSV",room:"1 King + Sofa Bed",cost:"1,800 pts (FNA)",notes:"Near LAX. Parking $39/day. Leave ~6:30 AM.",checkin:"4:00 PM",checkout:"11:00 AM",who:"Jonathan + Alan"},
-];
-const TRAV=[
-{type:"✈️",label:"Jonathan: PIT→LAX",date:"Sat Jun 20",detail:"UA744 | 5:55p→8:07p",conf:"DG4QLW",notes:"Seat 22F."},
-{type:"✈️",label:"Alan: PIT→LAX",date:"Sat Jun 20",detail:"UA744 | 5:55p→8:07p",conf:"PZRFDC",notes:"Seat 22D."},
-{type:"✈️",label:"Kevin: MCI→LAX",date:"Mon Jun 22",detail:"WN 4827 | 5:30a→6:55a",conf:"Southwest",notes:"Seat 16F."},
-{type:"🚗",label:"National Car Rental (LAX)",date:"Jun 20–29",detail:"Full-size. LAX pick up/return.",conf:"2108681517",notes:"$531.71."},
-{type:"✈️",label:"Kevin: LAX→MCI",date:"Sun Jun 28",detail:"WN 1327 | 3:10p→8:20p",conf:"Southwest",notes:"Seat 15A."},
-{type:"✈️",label:"Jonathan: LAX→PIT",date:"Mon Jun 29",detail:"UA2039 | 9:00a→4:51p",conf:"DG4QLW",notes:"Seat 22F."},
-{type:"✈️",label:"Alan: LAX→PIT",date:"Mon Jun 29",detail:"UA2039 | 9:00a→4:51p",conf:"PZRFDC",notes:"Seat 22D."},
-];
+// ── Static data (non-sensitive) ───────────────────────────────
 const GEAR=[
 {name:"🎒 Packs & Bags",items:[
 {item:"Gregory Baltoro 65L (M)",who:"Jonathan",src:"Backcountry",s:"owned"},
@@ -563,10 +477,7 @@ const GAPS=[
 ];
 
 // ── Render ────────────────────────────────────────────────────
-function render(){
-  // Guard: only render when app screen is visible
-  if(document.getElementById('screen-app').style.display==='none') return;
-
+function renderTabs() {
   const cl=clCount('cl-',CL), pf=pfhCount();
   let th='';
   TABS.forEach((t,i)=>{
@@ -575,25 +486,37 @@ function render(){
     if(i===4)l+=' ('+pf.done+'/'+pf.total+')';
     th+='<button class="tab-btn'+(i===activeTab?' active':'')+'" onclick="switchTab('+i+')">'+l+'</button>';
   });
-  document.getElementById('tabBar').innerHTML=th;
+  const tb = document.getElementById('tabBar');
+  if(tb) tb.innerHTML = th;
+}
+
+function render() {
+  if(document.getElementById('screen-app').style.display==='none') return;
+  renderTabs();
+  const el = document.getElementById('content');
+  if(!el) return;
   let h='';
 
-  if(activeTab===0){
-    h+='<p class="intro">Day-by-day travel. 🛣️ lines show driving segments.</p>';
-    TL.forEach(day=>{
-      h+='<div class="tl-day"><div class="tl-day-hdr">📅 '+esc(day.date)+' — '+esc(day.label)+'</div>';
-      day.items.forEach(it=>{
-        if(it.t==='d'){h+='<div class="tl-drive">'+esc(it.text)+'</div>';return}
-        h+='<div class="tl-card"><div class="tl-card-hd"><div style="flex:1"><div class="tl-title">'+(it.icon||'')+' '+esc(it.title)+'</div><div class="tl-sub">'+esc(it.detail)+'</div></div>';
-        if(it.who)h+='<div>'+whoBadge(it.who)+'</div>';
-        h+='</div>';
-        if(it.conf)h+='<div class="tl-conf">Conf: '+esc(it.conf)+'</div>';
-        if(it.notes)h+='<div class="tl-notes">'+esc(it.notes)+'</div>';
+  if(activeTab===0) {
+    if(!tripData){h='<div class="loading"><div class="spinner"></div>Loading timeline…</div>';}
+    else {
+      h+='<p class="intro">Day-by-day travel. 🛣️ lines show driving segments.</p>';
+      tripData.timeline.forEach(day=>{
+        h+='<div class="tl-day"><div class="tl-day-hdr">📅 '+esc(day.date)+' — '+esc(day.label)+'</div>';
+        day.items.forEach(it=>{
+          if(it.t==='d'){h+='<div class="tl-drive">'+esc(it.text)+'</div>';return}
+          h+='<div class="tl-card"><div class="tl-card-hd"><div style="flex:1"><div class="tl-title">'+(it.icon||'')+' '+esc(it.title)+'</div><div class="tl-sub">'+esc(it.detail)+'</div></div>';
+          if(it.who)h+='<div>'+whoBadge(it.who)+'</div>';
+          h+='</div>';
+          if(it.conf)h+='<div class="tl-conf">Conf: '+esc(it.conf)+'</div>';
+          if(it.notes)h+='<div class="tl-notes">'+esc(it.notes)+'</div>';
+          h+='</div>';
+        });
         h+='</div>';
       });
-      h+='</div>';
-    });
+    }
   }
+
   if(activeTab===1){
     h+='<p class="intro">Gear for Jonathan & Alan. Kevin\'s loadout TBD.</p>';
     GEAR.forEach(cat=>{
@@ -602,14 +525,20 @@ function render(){
       h+='</div>';
     });
   }
+
   if(activeTab===2){
-    h+='<div class="sec-title">🏨 Lodging</div>';
-    LODGING.forEach(l=>{h+='<div class="lcard"><div class="lcard-hd"><div><div class="lcard-name">'+esc(l.name)+'</div><div class="lcard-room">'+esc(l.dates)+' · '+esc(l.room)+'</div></div><div style="text-align:right"><div class="lcard-cost mono">'+esc(l.cost)+'</div><div class="lcard-conf">Conf: '+esc(l.conf)+'</div></div></div>'+(l.who?'<div style="margin-top:4px">'+badge('bg',l.who)+'</div>':'')+(l.checkin?'<div class="lcard-times">In '+esc(l.checkin)+' · Out '+esc(l.checkout)+'</div>':'')+'<div class="lcard-notes">'+esc(l.notes)+'</div></div>'});
-    h+='<div class="sec-title mt">✈️ 🚗 Transportation</div>';
-    TRAV.forEach(t=>{h+='<div class="lcard"><div class="lcard-name">'+esc(t.type)+' '+esc(t.label)+'</div><div class="lcard-room">'+esc(t.date)+'</div><div style="font-size:13px;margin-top:4px">'+esc(t.detail)+'</div><div class="lcard-conf" style="margin-top:2px">Conf: '+esc(t.conf)+'</div><div class="lcard-notes">'+esc(t.notes)+'</div></div>'});
+    if(!tripData){h='<div class="loading"><div class="spinner"></div>Loading lodging & travel…</div>';}
+    else {
+      h+='<div class="sec-title">🏨 Lodging</div>';
+      tripData.lodging.forEach(l=>{h+='<div class="lcard"><div class="lcard-hd"><div><div class="lcard-name">'+esc(l.name)+'</div><div class="lcard-room">'+esc(l.dates)+' · '+esc(l.room)+'</div></div><div style="text-align:right"><div class="lcard-cost mono">'+esc(l.cost)+'</div><div class="lcard-conf">Conf: '+esc(l.conf)+'</div></div></div>'+(l.who?'<div style="margin-top:4px">'+badge('bg',l.who)+'</div>':'')+(l.checkin?'<div class="lcard-times">In '+esc(l.checkin)+' · Out '+esc(l.checkout)+'</div>':'')+'<div class="lcard-notes">'+esc(l.notes)+'</div></div>'});
+      h+='<div class="sec-title mt">✈️ 🚗 Transportation</div>';
+      tripData.travel.forEach(t=>{h+='<div class="lcard"><div class="lcard-name">'+esc(t.type)+' '+esc(t.label)+'</div><div class="lcard-room">'+esc(t.date)+'</div><div style="font-size:13px;margin-top:4px">'+esc(t.detail)+'</div><div class="lcard-conf" style="margin-top:2px">Conf: '+esc(t.conf)+'</div><div class="lcard-notes">'+esc(t.notes)+'</div></div>'});
+    }
   }
+
   if(activeTab===3){
     h+='<p class="intro">Check your own column. Others\' checks appear in their color live.</p>';
+    const cl=clCount('cl-',CL);
     h+='<div class="badge-row">'+badge('bg',cl.done+' checked')+' '+badge('bgr',(cl.total-cl.done)+' remaining')+'</div>';
     h+=clHdr();
     h+='<div class="cl-cat-hdr mandatory">🔴 Mandatory Gear</div>';
@@ -617,7 +546,9 @@ function render(){
     h+='<div class="cl-cat-hdr normal" style="margin-top:14px">🟢 Recommended</div>';
     CL.forEach((g,i)=>{if(!g.mandatory)h+=clRow('cl-'+i,g,false)});
   }
+
   if(activeTab===4){
+    const pf=pfhCount();
     h+='<p class="intro">Items from home or to buy. Check your column as you set things aside.</p>';
     h+='<div class="badge-row">'+badge('bg',pf.done+' set aside')+' '+badge('bgr',(pf.total-pf.done)+' remaining')+'</div>';
     h+=clHdr();
@@ -629,6 +560,7 @@ function render(){
       });
     });
   }
+
   if(activeTab===5){
     h+='<p class="intro">Action items and confirmed info.</p>';
     h+='<h3 class="st wn">⚠️ Action Items</h3>';
@@ -637,7 +569,7 @@ function render(){
     GAPS.filter(g=>g.type==='info').forEach(g=>{h+='<div class="gap-info">'+esc(g.text)+'</div>'});
   }
 
-  document.getElementById('content').innerHTML=h;
+  el.innerHTML = h;
 }
 
 function switchTab(i){activeTab=i;render()}
