@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>HL2026 Data Seeder</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+  body{font-family:monospace;background:#0a1a0f;color:#4ade80;padding:32px;line-height:1.8}
+  button{background:#4ade80;color:#0a1a0f;border:none;padding:12px 24px;font-size:16px;font-weight:700;border-radius:8px;cursor:pointer;margin-top:16px}
+  button:hover{background:#22c55e}
+  #log{margin-top:24px;background:#0f2517;border:1px solid #1e3a27;border-radius:8px;padding:16px;font-size:13px;white-space:pre-wrap}
+  .ok{color:#4ade80} .err{color:#f87171} .info{color:#fbbf24}
+</style>
+</head>
+<body>
+<h2>⛰️ HL2026 Firebase Data Seeder</h2>
+<p>Signs in with Google, then writes sensitive trip data to Firebase under <code>hl2026/tripdata</code>.</p>
+<p class="info" style="color:#fbbf24">⚠️ This OVERWRITES existing tripdata. Run once, then delete this file.</p>
+<button onclick="seedData()">Sign in & Seed Firebase</button>
+<div id="log"></div>
+
+<script>
+firebase.initializeApp({
+  apiKey:            "AIzaSyDhw-hdONjo22YsoxJ-4aLXt9854WIwagY",
+  authDomain:        "highlander-b4875.firebaseapp.com",
+  databaseURL:       "https://highlander-b4875-default-rtdb.firebaseio.com",
+  projectId:         "highlander-b4875",
+  storageBucket:     "highlander-b4875.firebasestorage.app",
+  messagingSenderId: "547927288536",
+  appId:             "1:547927288536:web:9ecd745fc8fc86d9c505ad"
+});
+const auth = firebase.auth();
+const db   = firebase.database();
+
+function log(msg, cls="ok") {
+  document.getElementById("log").innerHTML += '<span class="'+cls+'">'+msg+'</span>\n';
+}
+
+const TRIPDATA = {
+  timeline: [
+    {date:"Sat, Jun 20", label:"Travel Day — PIT → LAX", items:[
+      {t:"f",icon:"✈️",title:"Jonathan: PIT → LAX",detail:"UA1349 | 5:55 PM → 8:07 PM (nonstop, 5h 12m)",who:"Jonathan",conf:"DG4QLW",notes:"Seat 22F. Boeing 737-800."},
+      {t:"f",icon:"✈️",title:"Alan: PIT → LAX",detail:"UA744 | 5:55 PM → 8:07 PM (nonstop, 5h 12m)",who:"Alan",conf:"PZRFDC",notes:"Seat 22D. Confirm Alan's updated return seats."},
+      {t:"f",icon:"🚗",title:"Pick up rental car at LAX",detail:"National Car Rental, full-size. Conf #2108681517.",who:"J+A",conf:"2108681517",notes:"Emerald Club. $531.71 est."},
+      {t:"d",text:"🛣️ LAX → Residence Inn Marina del Rey — ~5 mi, 10–15 min"},
+      {t:"f",icon:"🏨",title:"Check in: Residence Inn Marina del Rey",detail:"Jun 20–22, Studio King. 70K pts + $46.20.",who:"J+A",conf:"70586962",notes:"Free hot breakfast. Valet $49/day."},
+    ]},
+    {date:"Sun, Jun 21", label:"Kevin arrives · Rest day in Marina del Rey", items:[
+      {t:"f",icon:"✈️",title:"Kevin: DSM → LAX",detail:"WN 1769/1568 | 6:10 AM → 9:15 AM (1 stop DEN, 5h 5m)",who:"Kevin",conf:"Southwest",notes:"Seats 13A (DSM→DEN), 13F (DEN→LAX). Arrives a day early — joins J+A at Residence Inn."},
+      {t:"f",icon:"📍",title:"All 3 together — Marina del Rey",detail:"Kevin joins Jonathan & Alan at Residence Inn. Rest day before Big Bear drive.",who:"All 3",notes:"Kevin shares room. Free hot breakfast."},
+    ]},
+    {date:"Mon, Jun 22", label:"Drive to Big Bear", items:[
+      {t:"d",text:"🛣️ Marina del Rey → Big Bear Lake — ~115 mi, 2.5–3 hrs (I-10 E → CA-330 N)"},
+      {t:"f",icon:"🏨",title:"Check in: Sessions Retreat & Hotel",detail:"Jun 22–23, Signature Two Queen. $152.42 paid.",who:"All 3",conf:"2097464310851",notes:"PACKET PICKUP Jun 22 3–7 PM here!"},
+      {t:"f",icon:"📦",title:"PACKET PICKUP: Jun 22, 3–7 PM",detail:"Hiker tag, luggage tag, map, passport, merino buff, waste bag.",who:"All 3",notes:"Verify all 3 packets collected."},
+    ]},
+    {date:"Tue, Jun 23", label:"Trek Day 1", items:[
+      {t:"f",icon:"📦",title:"Backup Packet Pickup: 6–7 AM",detail:"41798 Garstin Dr parking lot. Only if not done Jun 22.",who:"All 3",notes:""},
+      {t:"f",icon:"🚐",title:"Shuttle to trailhead",detail:"From 41798 Garstin Dr. Gear check — first aid & water filter mandatory.",who:"All 3",notes:""},
+      {t:"f",icon:"⛰️",title:"URSA MAJOR — DAY 1",detail:"5-day trek begins. Org provides meals at checkpoints + gas cartridge.",who:"All 3",notes:""},
+    ]},
+    {date:"Wed–Fri, Jun 24–26", label:"Trek Days 2–4", items:[
+      {t:"f",icon:"⛰️",title:"URSA MAJOR — DAYS 2–4",detail:"On trail. San Bernardino Mountains, 7,000 ft.",who:"All 3",notes:""},
+    ]},
+    {date:"Sat, Jun 27", label:"Trek Day 5 — Finish!", items:[
+      {t:"f",icon:"🏁",title:"URSA MAJOR — DAY 5 (Final)",detail:"Trek finishes. Shuttle back to parking lot.",who:"All 3",notes:"Shower! Real food!"},
+      {t:"d",text:"🛣️ Parking lot → Postcard Cabins — short drive within Big Bear"},
+      {t:"f",icon:"🏨",title:"Check in: Postcard Cabins Big Bear",detail:"Jun 27–28, Cabin 2 Queen Bunk. 18K pts + $42.80.",who:"All 3",conf:"83779495",notes:"All 3 sharing cabin."},
+    ]},
+    {date:"Sun, Jun 28", label:"Drive to LA · Kevin & J+A fly home", items:[
+      {t:"f",icon:"⏰",title:"Kevin departs LAX 2:45 PM — leave Big Bear by ~10 AM",detail:"WN 2392/2687 LAX→DEN→DSM. Must be at LAX by ~1 PM.",who:"Kevin",notes:"Seats 7F (LAX→DEN), 15F (DEN→DSM). Arrives DSM 10:30 PM."},
+      {t:"d",text:"🛣️ Big Bear Lake → LAX — ~115 mi, 2.5–3 hrs. All depart ~10 AM together."},
+      {t:"f",icon:"🚗",title:"Drop Kevin at LAX, return rental car",detail:"Return National car rental at LAX. Kevin departs 2:45 PM.",who:"J+A",conf:"2108681517",notes:"Return car, then check in to AC Hotel or wait at airport."},
+      {t:"f",icon:"🏨",title:"AC Hotel LA South Bay (optional)",detail:"Jun 28, 1 King + Sofa Bed. 1,800 pts (FNA).",who:"J+A",conf:"6Q0U5XZSSV",notes:"Optional rest/shower stop before 10:35 PM flights. Parking $39/day."},
+      {t:"f",icon:"✈️",title:"Jonathan: LAX → ORD",detail:"UA353 | 10:35 PM → Jun 29 4:51 AM (4h 16m)",who:"Jonathan",conf:"DG4QLW",notes:"Seat 12F. Airbus A321neo. Red-eye."},
+      {t:"f",icon:"✈️",title:"Alan: LAX → ORD",detail:"Confirm Alan's updated leg.",who:"Alan",conf:"PZRFDC",notes:"Assumed same flight as Jonathan — verify seats."},
+    ]},
+    {date:"Mon, Jun 29", label:"ORD → PIT", items:[
+      {t:"f",icon:"⏰",title:"Arrive ORD 4:51 AM — 2h 24m connection",detail:"Check gate at O'Hare. Grab food, confirm onward gate.",who:"J+A",notes:""},
+      {t:"f",icon:"✈️",title:"Jonathan: ORD → PIT",detail:"UA1285 | 7:15 AM → 9:58 AM (1h 43m)",who:"Jonathan",conf:"DG4QLW",notes:"Seat 22F. Airbus A320."},
+      {t:"f",icon:"✈️",title:"Alan: ORD → PIT",detail:"Confirm Alan's connecting leg.",who:"Alan",conf:"PZRFDC",notes:"Assumed same flight as Jonathan — verify seats."},
+    ]},
+  ],
+
+  lodging: [
+    {dates:"Jun 20–22",name:"Residence Inn Marina del Rey",conf:"70586962",room:"Studio, 1 King, Partial Water View",cost:"70,000 pts + $46.20",notes:"Free hot breakfast. Valet $49/day. Kevin joins Jun 21. Cancel by Jun 18.",checkin:"4:00 PM",checkout:"11:00 AM",who:"J+A (Kevin joins Jun 21)"},
+    {dates:"Jun 22–23",name:"Sessions Retreat & Hotel (Big Bear)",conf:"2097464310851",room:"Signature Two Queen",cost:"$152.42 (paid)",notes:"PACKET PICKUP Jun 22 3–7 PM.",checkin:"4:00 PM",checkout:"11:00 AM",who:"All 3"},
+    {dates:"Jun 23–27",name:"HIGHLANDER Ursa Major Trek",conf:"Registration",room:"Salt Creek SL3 Tent",cost:"Event reg",notes:"Org provides meals, gas cartridge, merino buff.",who:"All 3"},
+    {dates:"Jun 27–28",name:"Postcard Cabins Big Bear",conf:"83779495",room:"Cabin, 2 Queen Bunk",cost:"18,000 pts + $42.80",notes:"All 3 sharing. Contactless check-in.",checkin:"4:00 PM",checkout:"11:00 AM",who:"All 3"},
+    {dates:"Jun 28 (optional)",name:"AC Hotel LA South Bay (El Segundo)",conf:"6Q0U5XZSSV",room:"1 King + Sofa Bed",cost:"1,800 pts (FNA)",notes:"Optional rest/shower before 10:35 PM red-eye. Parking $39/day. Not a full overnight.",checkin:"4:00 PM",checkout:"11:00 AM",who:"Jonathan + Alan (optional)"},
+  ],
+
+  travel: [
+    {type:"✈️",label:"Jonathan: PIT→LAX",date:"Sat Jun 20",detail:"UA1349 | 5:55p→8:07p (nonstop)",conf:"DG4QLW",notes:"Seat 22F."},
+    {type:"✈️",label:"Alan: PIT→LAX",date:"Sat Jun 20",detail:"UA744 | 5:55p→8:07p (nonstop)",conf:"PZRFDC",notes:"Seat 22D."},
+    {type:"✈️",label:"Kevin: DSM→LAX",date:"Sun Jun 21",detail:"WN 1769/1568 | 6:10a→9:15a (1 stop DEN)",conf:"Southwest",notes:"Seats 13A/13F. Arrives day early, joins at Residence Inn."},
+    {type:"🚗",label:"National Car Rental (LAX)",date:"Jun 20–28",detail:"Full-size. LAX pick up/return.",conf:"2108681517",notes:"$531.71. Return Jun 28 before evening flights."},
+    {type:"✈️",label:"Kevin: LAX→DSM",date:"Sun Jun 28",detail:"WN 2392/2687 | 2:45p→10:30p (1 stop DEN)",conf:"Southwest",notes:"Seats 7F/15F. Leave Big Bear ~10 AM."},
+    {type:"✈️",label:"Jonathan: LAX→ORD",date:"Sun Jun 28",detail:"UA353 | 10:35p→Mon 4:51a (red-eye)",conf:"DG4QLW",notes:"Seat 12F."},
+    {type:"✈️",label:"Alan: LAX→ORD",date:"Sun Jun 28",detail:"Confirm Alan's updated leg.",conf:"PZRFDC",notes:"Assumed same as Jonathan — verify seats."},
+    {type:"✈️",label:"Jonathan: ORD→PIT",date:"Mon Jun 29",detail:"UA1285 | 7:15a→9:58a (1h 43m)",conf:"DG4QLW",notes:"Seat 22F. 2h 24m connection at ORD."},
+    {type:"✈️",label:"Alan: ORD→PIT",date:"Mon Jun 29",detail:"Confirm Alan's connecting leg.",conf:"PZRFDC",notes:"Assumed same as Jonathan — verify seats."},
+  ]
+};
+
+async function seedData() {
+  log("Signing in with Google…", "info");
+  try {
+    await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    log("✓ Signed in as " + auth.currentUser.email);
+    log("Writing tripdata to Firebase…", "info");
+    await db.ref("hl2026/tripdata").set(TRIPDATA);
+    log("✓ Timeline: " + TRIPDATA.timeline.length + " days written");
+    log("✓ Lodging: " + TRIPDATA.lodging.length + " entries written");
+    log("✓ Travel: " + TRIPDATA.travel.length + " entries written");
+    log("\n✅ DONE. Delete this file from GitHub after seeding.", "ok");
+  } catch(err) {
+    log("✗ Error: " + err.message, "err");
+  }
+}
+</script>
+</body>
+</html>
