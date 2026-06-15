@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang='en' data-theme='light'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover'>
+<meta name='color-scheme' content='light dark'>
+<title>Connection Card Deck</title>
+<link href='https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=boska@400,500,700&display=swap' rel='stylesheet'>
+<style>
+:root,[data-theme="light"]{--text-xs:clamp(.75rem,.7rem + .25vw,.875rem);--text-sm:clamp(.875rem,.8rem + .35vw,1rem);--text-base:clamp(1rem,.95rem + .25vw,1.125rem);--text-lg:clamp(1.125rem,1rem + .75vw,1.5rem);--text-xl:clamp(1.5rem,1.2rem + 1.25vw,2.25rem);--text-2xl:clamp(2rem,1.35rem + 2vw,3.2rem);--space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;--space-5:1.25rem;--space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;--space-12:3rem;--space-16:4rem;--color-bg:#f7f6f2;--color-surface:#f9f8f5;--color-surface-2:#fbfbf9;--color-border:#d4d1ca;--color-text:#28251d;--color-text-muted:#6c6a64;--color-text-inverse:#f9f8f4;--color-primary:#01696f;--color-primary-hover:#0c4e54;--color-secondary:#7a39bb;--color-accent:#b76d15;--radius-sm:.375rem;--radius-md:.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-full:9999px;--shadow-sm:0 1px 2px rgba(40,37,29,.06);--shadow-md:0 10px 30px rgba(40,37,29,.08);--shadow-lg:0 18px 50px rgba(40,37,29,.12);--transition:180ms cubic-bezier(.16,1,.3,1);--font-body:'Satoshi',Inter,sans-serif;--font-display:'Boska',Georgia,serif;}
+[data-theme="dark"]{--color-bg:#171614;--color-surface:#1c1b19;--color-surface-2:#201f1d;--color-border:#393836;--color-text:#e3e0d7;--color-text-muted:#b2aea4;--color-text-inverse:#171614;--color-primary:#66aab3;--color-primary-hover:#87bbc2;--color-secondary:#bf95ea;--color-accent:#e0a255;--shadow-sm:0 1px 2px rgba(0,0,0,.25);--shadow-md:0 10px 30px rgba(0,0,0,.32);--shadow-lg:0 18px 50px rgba(0,0,0,.42);}
+*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:none;text-size-adjust:none;scroll-behavior:smooth}body{margin:0;min-height:100dvh;font-family:var(--font-body);font-size:var(--text-base);line-height:1.55;color:var(--color-text);background:radial-gradient(circle at top,color-mix(in srgb,var(--color-primary) 10%,transparent),transparent 35%),var(--color-bg)}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer;border:0}h1,h2,h3,p{margin:0}.skip-link{position:absolute;left:var(--space-4);top:-40px;background:var(--color-primary);color:var(--color-text-inverse);padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);z-index:50}.skip-link:focus{top:var(--space-4)}.app{max-width:1240px;margin:0 auto;padding:env(safe-area-inset-top) var(--space-4) env(safe-area-inset-bottom)}.topbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);padding:var(--space-4) 0}.brand{display:flex;align-items:center;gap:var(--space-3)}.logo{width:42px;height:42px;padding:8px;border-radius:14px;background:var(--color-surface);border:1px solid color-mix(in srgb,var(--color-text) 10%,transparent);box-shadow:var(--shadow-sm)}.brand-copy small{display:block;font-size:var(--text-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)}.brand-copy strong{display:block;font-size:var(--text-lg);font-family:var(--font-display);font-weight:600}.top-actions{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;justify-content:flex-end}.icon-btn,.btn{min-height:44px;border-radius:var(--radius-full);transition:transform var(--transition),background var(--transition),color var(--transition),border-color var(--transition),box-shadow var(--transition)}.icon-btn{width:44px;background:var(--color-surface);border:1px solid color-mix(in srgb,var(--color-text) 10%,transparent);display:grid;place-items:center;box-shadow:var(--shadow-sm)}.btn{padding:0 var(--space-4);background:var(--color-surface);border:1px solid color-mix(in srgb,var(--color-text) 10%,transparent)}.btn:hover,.icon-btn:hover,.mode-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}.btn-primary{background:var(--color-primary);color:var(--color-text-inverse);border-color:transparent}.btn-primary:hover{background:var(--color-primary-hover)}.panel{background:color-mix(in srgb,var(--color-surface) 92%,transparent);border:1px solid color-mix(in srgb,var(--color-text) 10%,transparent);border-radius:var(--radius-xl);box-shadow:var(--shadow-md);backdrop-filter:blur(14px)}.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:var(--space-6);padding:var(--space-4) 0 var(--space-6)}.hero-copy,.modes-panel,.controls,.queue,.editor,.mode-notes{padding:var(--space-5)}.eyebrow{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-radius:var(--radius-full);background:color-mix(in srgb,var(--color-primary) 12%,var(--color-surface));color:var(--color-primary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.08em;font-weight:700}h1{margin-top:var(--space-4);font-family:var(--font-display);font-size:var(--text-2xl);line-height:.98;max-width:13ch}.lede{margin-top:var(--space-4);color:var(--color-text-muted);max-width:60ch}.hero-grid{margin-top:var(--space-5);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3)}.mini-stat{padding:var(--space-4);background:var(--color-surface-2);border-radius:var(--radius-lg);border:1px solid color-mix(in srgb,var(--color-text) 8%,transparent)}.mini-stat strong{display:block;font-size:var(--text-lg)}.mini-stat span,label,.helper,.brand-copy small{font-size:var(--text-xs)}.mini-stat span,label{color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700}.modes-panel{display:grid;gap:var(--space-3)}.mode-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)}.mode-card{text-align:left;padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-surface-2);border:1px solid color-mix(in srgb,var(--color-text) 10%,transparent);min-height:112px;transition:transform var(--transition),box-shadow var(--transition),border-color var(--transition),background var(--transition)}.mode-card.active{border-color:color-mix(in srgb,var(--color-primary) 55%,transparent);background:color-mix(in srgb,var(--color-primary) 10%,var(--color-surface))}.mode-card strong{display:block;margin-top:var(--space-2)}.mode-card span,.helper{display:block;color:var(--color-text-muted)}.mode-card span{font-size:var(--text-sm);margin-top:var(--space-1)}.workspace{display:grid;grid-template-columns:340px 1fr;gap:var(--space-6);padding-bottom:var(--space-10)}aside,main{display:grid;gap:var(--space-4);align-content:start}.control-group{display:grid;gap:var(--space-3);margin-top:var(--space-4)}select,textarea,input[type=text]{width:100%;border-radius:var(--radius-md);border:1px solid var(--color-border);background:var(--color-surface-2);padding:.8rem .9rem}textarea{min-height:110px;resize:vertical}.inline-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}.deck-meta{display:flex;gap:var(--space-2);flex-wrap:wrap;margin-top:var(--space-3)}.chip{display:inline-flex;align-items:center;min-height:32px;padding:0 var(--space-3);border-radius:var(--radius-full);background:color-mix(in srgb,var(--color-primary) 10%,var(--color-surface));color:var(--color-primary);font-size:var(--text-xs);font-weight:700}.stage{padding:clamp(var(--space-4),3vw,var(--space-6))}.status-row{display:flex;justify-content:space-between;gap:var(--space-3);align-items:center;flex-wrap:wrap;margin-bottom:var(--space-4)}.status-row p{color:var(--color-text-muted)}.card-shell,.card-face{min-height:430px}.card-face{position:relative;overflow:hidden;padding:clamp(var(--space-5),4vw,var(--space-8));border-radius:calc(var(--radius-xl) - 4px);background:linear-gradient(135deg,color-mix(in srgb,var(--color-primary) 10%,var(--color-surface-2)),var(--color-surface));border:1px solid color-mix(in srgb,var(--color-text) 10%,transparent);display:flex;flex-direction:column;justify-content:space-between;gap:var(--space-6)}.card-face::after{content:'';position:absolute;inset:auto -10% -20% auto;width:180px;height:180px;border-radius:50%;background:color-mix(in srgb,var(--color-secondary) 14%,transparent);filter:blur(10px)}.level-badge{display:inline-flex;width:fit-content;padding:var(--space-2) var(--space-3);border-radius:var(--radius-full);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.08em;font-weight:700}.level-1{background:color-mix(in srgb,var(--color-primary) 12%,var(--color-surface));color:var(--color-primary)}.level-2{background:color-mix(in srgb,var(--color-accent) 16%,var(--color-surface));color:var(--color-accent)}.level-3{background:color-mix(in srgb,var(--color-secondary) 12%,var(--color-surface));color:var(--color-secondary)}.question{position:relative;z-index:1;font-family:var(--font-display);font-size:clamp(2rem,3.4vw,3.2rem);line-height:1.03;max-width:12ch;margin-top:var(--space-3)}.prompt-note{position:relative;z-index:1;color:var(--color-text-muted);max-width:54ch}.actions{display:flex;gap:var(--space-3);flex-wrap:wrap}.progress{display:grid;gap:var(--space-2)}.progress-bar{height:10px;border-radius:var(--radius-full);background:color-mix(in srgb,var(--color-text) 10%,transparent);overflow:hidden}.progress-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--color-primary),color-mix(in srgb,var(--color-secondary) 45%,var(--color-primary)));border-radius:inherit;transition:width 260ms var(--transition)}.list{display:grid;gap:var(--space-2);margin-top:var(--space-3);max-height:280px;overflow:auto}.list button{width:100%;text-align:left;padding:var(--space-3);border-radius:var(--radius-md);background:var(--color-surface-2);border:1px solid color-mix(in srgb,var(--color-text) 8%,transparent)}.list button.active{border-color:color-mix(in srgb,var(--color-primary) 50%,transparent);background:color-mix(in srgb,var(--color-primary) 8%,var(--color-surface))}dialog{border:none;border-radius:var(--radius-xl);padding:0;width:min(760px,calc(100vw - 2rem));background:var(--color-surface);color:var(--color-text);box-shadow:var(--shadow-lg)}dialog::backdrop{background:rgba(23,22,20,.5);backdrop-filter:blur(4px)}.modal{padding:var(--space-5);display:grid;gap:var(--space-4)}.modal textarea{min-height:280px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.95rem}.modal-actions{display:flex;justify-content:flex-end;gap:var(--space-2);flex-wrap:wrap}.footer-note{padding:var(--space-4) 0 var(--space-8);font-size:var(--text-sm);color:var(--color-text-muted)}:focus-visible{outline:2px solid var(--color-primary);outline-offset:3px}@media (max-width:1040px){.hero,.workspace{grid-template-columns:1fr}.mode-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:760px){.app{padding-inline:var(--space-3)}.topbar{align-items:start;flex-direction:column}.top-actions{width:100%;justify-content:flex-start}.hero-grid,.mode-grid,.inline-actions{grid-template-columns:1fr}.actions .btn,.inline-actions .btn{width:100%}.card-shell,.card-face{min-height:380px}.question{font-size:clamp(1.8rem,8vw,2.4rem)}}@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+</head>
+<body>
+<a href='#main' class='skip-link'>Skip to content</a>
+<div class='app'>
+<header class='topbar'><div class='brand'><div class='logo'><svg viewBox='0 0 48 48' fill='none'><rect x='8' y='10' width='18' height='24' rx='6' stroke='currentColor' stroke-width='2.8'></rect><rect x='20' y='14' width='20' height='24' rx='6' stroke='currentColor' stroke-width='2.8'></rect><path d='M24 22c2.7-4.2 9-4.3 11.1.4 1.3 2.9-.1 6.4-2.8 8.3L24 36l-8.3-5.3c-2.7-1.9-4.1-5.4-2.8-8.3 2.1-4.7 8.4-4.6 11.1-.4Z' fill='currentColor' opacity='.16' stroke='currentColor' stroke-width='1.4'></path></svg></div><div class='brand-copy'><small>Offline-ready couples prompt app</small><strong>Connection Card Deck</strong></div></div><div class='top-actions'><button class='icon-btn' id='themeToggle' aria-label='Switch theme'></button><button class='btn' id='shuffleBtn'>Shuffle mode deck</button><button class='btn' id='exportBtn'>Export JSON</button><button class='btn btn-primary' id='importBtn'>Import / edit</button></div></header>
+<section class='hero'><div class='panel hero-copy'><div class='eyebrow'>Six built-in modes</div><h1>A couples conversation app designed for trails, travel, repair, and real planning.</h1><p class='lede'>This single HTML file now includes six dedicated modes: trail day, campfire, car ride, couples, check-in after tension, and future planning. Each mode contains linked Level 1–3 prompt trios so you can start light, go reflective, and move deeper only when it feels right.</p><div class='hero-grid'><div class='mini-stat'><span>Modes</span><strong>6 guided flows</strong></div><div class='mini-stat'><span>Prompts</span><strong>240 total</strong></div><div class='mini-stat'><span>Format</span><strong>Single local file</strong></div></div></div><div class='panel modes-panel'><div><h2>Choose a mode</h2><p class='helper' id='modeSummary'>Each mode has its own tone, built-in prompt deck, and progression path.</p></div><div class='mode-grid' id='modeGrid'></div></div></section>
+<div class='workspace'><aside><section class='panel controls'><h2>Deck controls</h2><div class='control-group'><div><label for='filterLevel'>Prompt level</label><select id='filterLevel'><option value='all'>All levels</option><option value='1'>Level 1 only</option><option value='2'>Level 2 only</option><option value='3'>Level 3 only</option></select></div><div><label for='personName'>Session label</label><input id='personName' type='text' placeholder='Example: Big Bear campfire'></div><div class='inline-actions'><button class='btn' id='prevBtn'>Previous</button><button class='btn' id='threeCardBtn'>Draw 3-card set</button><button class='btn btn-primary' id='nextBtn'>Next card</button></div><p class='helper'>Suggested flow: start with a few Level 1 cards, move into Level 2 if the conversation feels warm, and only use Level 3 when there is real room for it.</p></div><div class='deck-meta' id='metaChips'></div></section><section class='panel mode-notes'><h2>Mode guidance</h2><div class='control-group' style='margin-top:0'><p id='modeTitle' style='font-weight:700'></p><p class='helper' id='modeDescription'></p><p class='helper' id='modeFlow'></p></div></section><section class='panel queue'><h2>Prompt queue</h2><div class='list' id='queueList'></div></section><section class='panel editor'><h2>Quick add</h2><div class='control-group'><div><label for='newTheme'>Theme</label><input id='newTheme' type='text' placeholder='Example: Trail snacks'></div><div><label for='newLevel'>New prompt level</label><select id='newLevel'><option value='1'>Level 1</option><option value='2'>Level 2</option><option value='3'>Level 3</option></select></div><div><label for='newPrompt'>New prompt</label><textarea id='newPrompt' placeholder='Write your own prompt here...'></textarea></div><button class='btn btn-primary' id='addPromptBtn'>Add to current mode</button></div></section></aside><main id='main'><section class='panel stage' aria-live='polite'><div id='drawThreePanel' class='panel' style='display:none;margin-bottom:1rem;padding:1rem;background:color-mix(in srgb,var(--color-primary) 6%,var(--color-surface));border-radius:1rem;'><h2 style='margin-bottom:.5rem'>Three-card sequence</h2><div id='drawThreeList' class='list' style='max-height:none'></div></div><div class='status-row'><div><h2>Current card</h2><p id='sessionLabel'>Ready when you are.</p></div><div class='chip' id='countChip'>0 prompts loaded</div></div><div class='card-shell'><article class='card-face'><div><div class='level-badge level-1' id='levelBadge'>Level 1</div><p class='question' id='questionText'>Pick a mode to begin.</p></div><div><p class='prompt-note' id='promptNote'>The mode guidance on the left will help you choose the right tone and depth.</p><div class='actions' style='margin-top:1rem'><button class='btn' id='copyBtn'>Copy card</button><button class='btn' id='removeBtn'>Remove current</button><button class='btn btn-primary' id='randomDeepBtn'>Jump to Level 3</button></div></div></article></div><div class='progress' style='margin-top:1rem'><div class='status-row' style='margin:0'><p id='progressText'>0 of 0 reviewed</p><p id='filterText'>Showing all levels</p></div><div class='progress-bar'><span id='progressFill'></span></div></div></section></main></div>
+<p class='footer-note'>Save this file on your phone, in iCloud Drive, on a Synology share, or in any synced folder. The six built-in modes are already included, and you can still export the deck JSON anytime for backup or editing.</p>
+</div>
+<dialog id='editorDialog'><form method='dialog' class='modal'><div><h2>Edit or import deck</h2><p class='helper'>Paste deck JSON, or edit the current prompts directly. Format: an array of objects with <code>mode</code>, <code>modeTitle</code>, <code>theme</code>, <code>level</code>, and <code>text</code>.</p></div><textarea id='jsonEditor'></textarea><div class='modal-actions'><button class='btn' value='cancel'>Cancel</button><button class='btn btn-primary' id='applyJsonBtn' value='default'>Apply changes</button></div></form></dialog>
+<script>
+const MODES = {"trail-day": {"title": "Trail day", "description": "For hikes, backpacking miles, and active days when energy, pace, and support matter.", "icon": "\u26f0"}, "campfire": {"title": "Campfire", "description": "For evenings, quieter moments, decompression, gratitude, and deeper reflection.", "icon": "\ud83d\udd25"}, "car-ride": {"title": "Car ride", "description": "For long drives, low-pressure conversation, playful prompts, and gradual depth.", "icon": "\ud83d\ude97"}, "couples": {"title": "Couples", "description": "For everyday relationship connection when you want to move past updates and into what is actually happening inside each of you.", "icon": "\u2764"}, "after-tension": {"title": "Check-in after tension", "description": "For repair, reassurance, naming hurt clearly, and reconnecting without spiraling.", "icon": "\ud83e\udded"}, "future-planning": {"title": "Future planning", "description": "For upcoming trips, logistics, shared hopes, and building what comes next together.", "icon": "\ud83d\uddfa"}};
+const starterDeck = [{"mode": "trail-day", "modeTitle": "Trail day", "theme": "Starting strong", "level": 1, "text": "What helps you feel ready at the start of a long trail day?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Starting strong", "level": 2, "text": "What can quietly make your day feel harder before it really begins?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Starting strong", "level": 3, "text": "How can I help set the emotional tone of a demanding day better with you?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Pace", "level": 1, "text": "What pace feels natural and sustainable to you on a long day out?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Pace", "level": 2, "text": "When do you start feeling pushed or pulled by another person's pace?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Pace", "level": 3, "text": "Where in life do you feel like your pace and mine need more honest conversation?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Discomfort", "level": 1, "text": "What kind of discomfort bothers you first on the trail?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Discomfort", "level": 2, "text": "What do you usually do when you are uncomfortable but trying not to complain?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Discomfort", "level": 3, "text": "How do you want me to respond when I can tell you are struggling?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Encouragement", "level": 1, "text": "What kind of encouragement actually helps you keep going?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Encouragement", "level": 2, "text": "What kind of encouragement misses the mark for you?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Encouragement", "level": 3, "text": "What kind of support makes you feel partnered instead of managed?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Breaks", "level": 1, "text": "What makes a trail break feel genuinely restorative for you?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Breaks", "level": 2, "text": "How do you know you need a break before you fully hit the wall?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Breaks", "level": 3, "text": "What would it look like for us to respect each other's thresholds earlier?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Weather and mood", "level": 1, "text": "What kind of weather surprisingly improves your mood outdoors?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Weather and mood", "level": 2, "text": "How does your stress usually show up when conditions turn tougher than expected?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Weather and mood", "level": 3, "text": "When circumstances change fast, what kind of partner do you most need beside you?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Trust on the move", "level": 1, "text": "What helps you feel confident moving through a day together?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Trust on the move", "level": 2, "text": "What small thing can chip away at trust during a challenging day?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Trust on the move", "level": 3, "text": "What helps you feel we are truly on the same team when things get hard?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Beauty in the middle", "level": 1, "text": "What kind of view or trail moment stops you in your tracks?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Beauty in the middle", "level": 2, "text": "What kind of beauty do you notice when you finally slow down?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Beauty in the middle", "level": 3, "text": "What do you hope we keep noticing about each other even in demanding seasons?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Hard miles", "level": 1, "text": "What thought helps you through the tougher miles?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Hard miles", "level": 2, "text": "What kind of fatigue feels hardest for you to name out loud?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Hard miles", "level": 3, "text": "When life becomes a grind, what keeps you from feeling alone inside it?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Resetting", "level": 1, "text": "What is your best quick reset when the day gets scrambled?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Resetting", "level": 2, "text": "What usually keeps you from taking that reset sooner?"}, {"mode": "trail-day", "modeTitle": "Trail day", "theme": "Resetting", "level": 3, "text": "What reset do you think our relationship could benefit from too?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Winding down", "level": 1, "text": "What helps you unwind at the end of a full day?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Winding down", "level": 2, "text": "What tends to stay active in your mind even when everything gets quiet?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Winding down", "level": 3, "text": "What are you carrying lately that deserves gentler handling?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Shared silence", "level": 1, "text": "When does silence between us feel especially good?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Shared silence", "level": 2, "text": "When does silence start to feel loaded instead of restful?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Shared silence", "level": 3, "text": "What tends to go unsaid between us longer than it should?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Gratitude", "level": 1, "text": "What is something small from today that made the day better?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Gratitude", "level": 2, "text": "What did I do recently that made you feel more supported or understood?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Gratitude", "level": 3, "text": "What appreciation have you felt but not really spoken out loud yet?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Stories we keep", "level": 1, "text": "What memory of ours comes back to you most easily?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Stories we keep", "level": 2, "text": "Why do you think that memory stuck the way it did?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Stories we keep", "level": 3, "text": "What kind of story do you hope we are building together right now?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Feeling at home", "level": 1, "text": "What kind of place makes you feel at home surprisingly fast?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Feeling at home", "level": 2, "text": "What conditions help you relax enough to actually settle in somewhere?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Feeling at home", "level": 3, "text": "What does feeling emotionally at home with someone require from you?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Night honesty", "level": 1, "text": "What kind of conversation are you most open to late at night?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Night honesty", "level": 2, "text": "What feelings or thoughts usually get louder in quiet moments?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Night honesty", "level": 3, "text": "What truth feels closest to the surface for you lately?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Receiving care", "level": 1, "text": "What is an easy way for someone to take care of you that you reliably appreciate?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Receiving care", "level": 2, "text": "Why do you think receiving care is easy or hard for you?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Receiving care", "level": 3, "text": "What would letting yourself be more fully cared for require emotionally?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Giving care", "level": 1, "text": "How do you most naturally show care when things are calm and unhurried?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Giving care", "level": 2, "text": "What kind of caring effort do you wish got noticed more?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Giving care", "level": 3, "text": "Where do you worry your care may not be landing the way you intend?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Tenderness", "level": 1, "text": "What kind of affection feels easiest and most natural to receive?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Tenderness", "level": 2, "text": "What helps you soften emotionally rather than stay guarded?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Tenderness", "level": 3, "text": "What kind of closeness are you most hoping for from me lately?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Before sleep", "level": 1, "text": "What thought would you like to go to sleep with tonight?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Before sleep", "level": 2, "text": "What thought do you wish had less power over you at night?"}, {"mode": "campfire", "modeTitle": "Campfire", "theme": "Before sleep", "level": 3, "text": "What would help you feel more at peace with us right now?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Road mood", "level": 1, "text": "What makes a drive feel fun instead of just functional for you?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Road mood", "level": 2, "text": "What kind of travel friction gets under your skin fastest?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Road mood", "level": 3, "text": "What helps you stay connected instead of irritated when little things pile up?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Music and atmosphere", "level": 1, "text": "What kind of music or audio makes a drive better for you?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Music and atmosphere", "level": 2, "text": "What does your favorite driving soundtrack usually match emotionally?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Music and atmosphere", "level": 3, "text": "What emotional atmosphere do you most want us to create together more often?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Detours", "level": 1, "text": "What kind of spontaneous stop are you usually glad we made?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Detours", "level": 2, "text": "When have unplanned moments turned out better than the schedule?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Detours", "level": 3, "text": "What would help you trust that meaningful things do not always need perfect planning?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Good questions", "level": 1, "text": "What question do you wish people asked you more often?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Good questions", "level": 2, "text": "Why do you think that question matters to you?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Good questions", "level": 3, "text": "What do you wish I understood more deeply about you right now?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Versions of you", "level": 1, "text": "What version of you comes out more easily when we are away from home?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Versions of you", "level": 2, "text": "What does travel let you express that everyday routine does not?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Versions of you", "level": 3, "text": "What part of you do you most want me to keep making space for?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Memory lane", "level": 1, "text": "What trip or drive memory of ours still makes you smile?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Memory lane", "level": 2, "text": "What about that memory feels especially representative of us?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Memory lane", "level": 3, "text": "What kind of memory do you hope we keep making in this season of life?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Dreaming forward", "level": 1, "text": "What kind of trip would feel especially good for us in the next year?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Dreaming forward", "level": 2, "text": "What do you hope a trip like that would give us beyond the destination?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Dreaming forward", "level": 3, "text": "What future are you quietly hoping we are still building together?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Low-stakes honesty", "level": 1, "text": "What is something small you have changed your mind about recently?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Low-stakes honesty", "level": 2, "text": "What helped you change your mind?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Low-stakes honesty", "level": 3, "text": "What bigger belief or assumption in your life is shifting right now?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Being seen", "level": 1, "text": "What is something people often misunderstand about you at first?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Being seen", "level": 2, "text": "What do you wish they noticed sooner?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Being seen", "level": 3, "text": "What part of being truly known feels hardest to trust?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Roadside future", "level": 1, "text": "If we had one totally open day tomorrow, how would you want to spend it?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Roadside future", "level": 2, "text": "What does that say about what you most need right now?"}, {"mode": "car-ride", "modeTitle": "Car ride", "theme": "Roadside future", "level": 3, "text": "What part of life do you want more of before this year ends?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Re-entry", "level": 1, "text": "What helps you feel safe enough to talk after tension?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Re-entry", "level": 2, "text": "What makes it harder for you to come back into a conversation once you are activated?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Re-entry", "level": 3, "text": "What would help repair feel less risky for you with me?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "What happened", "level": 1, "text": "What part of what just happened landed hardest for you?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "What happened", "level": 2, "text": "What meaning did your mind make of it in the moment?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "What happened", "level": 3, "text": "What pain underneath the conflict do you most want me to understand?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Needs under reactions", "level": 1, "text": "When you get upset, what need is most often under it?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Needs under reactions", "level": 2, "text": "What need do you think gets missed most often when we are tense?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Needs under reactions", "level": 3, "text": "What do you need in order to stay real with me instead of shutting down or protecting?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Repair language", "level": 1, "text": "What kind of apology or repair attempt feels most genuine to you?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Repair language", "level": 2, "text": "What kind of repair language sounds polished but does not actually land?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Repair language", "level": 3, "text": "What do you most need to hear when you have been hurt by me?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Boundaries", "level": 1, "text": "What boundary helps you stay grounded during hard conversations?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Boundaries", "level": 2, "text": "What boundary do you struggle to state until it is already too late?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Boundaries", "level": 3, "text": "What boundary between us deserves clearer protection right now?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Reassurance", "level": 1, "text": "What kind of reassurance usually helps you regulate?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Reassurance", "level": 2, "text": "What reassurance sounds nice but does not really reach you?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Reassurance", "level": 3, "text": "What would help you feel secure with me in a more lasting way?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Patterns", "level": 1, "text": "What pattern do you notice us falling into when we are strained?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Patterns", "level": 2, "text": "What part of that pattern feels most costly for you?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Patterns", "level": 3, "text": "What would interrupt that pattern in a real way, not just briefly?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Truth and gentleness", "level": 1, "text": "What helps truth feel easier to say between us?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Truth and gentleness", "level": 2, "text": "When does honesty start to feel dangerous instead of connecting?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Truth and gentleness", "level": 3, "text": "What truth do you want to be able to tell me without fearing fallout?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Feeling chosen", "level": 1, "text": "What small action helps you feel actively chosen after a hard moment?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Feeling chosen", "level": 2, "text": "When do you feel overlooked even if that was not the intent?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Feeling chosen", "level": 3, "text": "What helps you believe you are wanted for who you are, not just what you provide?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Repair aftercare", "level": 1, "text": "After we repair something, what helps you actually feel settled again?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Repair aftercare", "level": 2, "text": "What keeps a resolved issue from fully feeling resolved for you?"}, {"mode": "after-tension", "modeTitle": "Check-in after tension", "theme": "Repair aftercare", "level": 3, "text": "What would make repair feel more like intimacy and less like emergency work?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "What we want next", "level": 1, "text": "What are you most excited to experience with me next?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "What we want next", "level": 2, "text": "What do you hope that experience gives us emotionally, not just practically?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "What we want next", "level": 3, "text": "What are you most hoping we are building together over the next year?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Planning roles", "level": 1, "text": "What part of planning do you naturally want to own?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Planning roles", "level": 2, "text": "What planning responsibility feels heavier for you than it may look?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Planning roles", "level": 3, "text": "Where do you most want better balance in how we carry future plans together?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Money and tradeoffs", "level": 1, "text": "What kind of experience feels worth spending more on?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Money and tradeoffs", "level": 2, "text": "How do you decide what tradeoffs are worth it in a trip or shared plan?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Money and tradeoffs", "level": 3, "text": "What values do you want our bigger choices to reflect more clearly?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Energy budget", "level": 1, "text": "What kind of upcoming plan feels energizing instead of draining?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Energy budget", "level": 2, "text": "What kind of commitment is hardest for you to recover from lately?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Energy budget", "level": 3, "text": "What part of our future planning needs to make more room for your real capacity?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Dreams and realism", "level": 1, "text": "What dream feels exciting to talk about even if it is not immediate?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Dreams and realism", "level": 2, "text": "What part of turning dreams into plans feels easiest or hardest for you?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Dreams and realism", "level": 3, "text": "What dream do you want me to take more seriously with you?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Security", "level": 1, "text": "What helps you feel secure when we are thinking ahead together?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Security", "level": 2, "text": "What uncertainty is hardest for you to sit with when future plans are still loose?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Security", "level": 3, "text": "What kind of stability do you most want from us in the next chapter?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Adventure appetite", "level": 1, "text": "What kind of adventure sounds especially appealing to you right now?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Adventure appetite", "level": 2, "text": "What makes a stretch experience feel worthwhile rather than depleting?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Adventure appetite", "level": 3, "text": "Where do you want us to be braver together over the next year?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Home base", "level": 1, "text": "What helps a shared home base feel calm and workable for you?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Home base", "level": 2, "text": "What everyday system or rhythm matters more to you than people may realize?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Home base", "level": 3, "text": "What kind of life structure would help you feel more grounded with me?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Goals with heart", "level": 1, "text": "What is one practical goal that would feel meaningful for us to reach together?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Goals with heart", "level": 2, "text": "Why does that goal matter beyond just checking it off?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Goals with heart", "level": 3, "text": "What does success together actually mean to you right now?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Naming fears", "level": 1, "text": "What future unknown feels most real to you right now?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Naming fears", "level": 2, "text": "What do you usually do when a future fear is present but hard to solve?"}, {"mode": "future-planning", "modeTitle": "Future planning", "theme": "Naming fears", "level": 3, "text": "What fear about the future deserves more honesty and compassion between us?"},
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Beyond the day",
+    "level": 1,
+    "text": "What was one part of today that affected you more than you expected?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Beyond the day",
+    "level": 2,
+    "text": "What part of your day would you most want me to understand, not just hear about?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Beyond the day",
+    "level": 3,
+    "text": "What has felt most present in your inner world lately that I may be missing?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Feeling known",
+    "level": 1,
+    "text": "What is something small about you that you wish I noticed more often?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Feeling known",
+    "level": 2,
+    "text": "When do you feel most known by me in everyday life?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Feeling known",
+    "level": 3,
+    "text": "What part of you most wants to be more deeply understood by me right now?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Stress and care",
+    "level": 1,
+    "text": "What does stress look like in you before you say you are stressed?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Stress and care",
+    "level": 2,
+    "text": "What kind of support helps you most when life feels heavy?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Stress and care",
+    "level": 3,
+    "text": "What do you need from me lately that may be hard for you to ask for directly?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Closeness",
+    "level": 1,
+    "text": "When have you felt especially close to me recently?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Closeness",
+    "level": 2,
+    "text": "What kind of moment tends to make you feel more connected to me?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Closeness",
+    "level": 3,
+    "text": "What kind of closeness are you quietly craving more of from us right now?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Being chosen",
+    "level": 1,
+    "text": "What small action from me helps you feel actively chosen?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Being chosen",
+    "level": 2,
+    "text": "When in our routine do you feel most prioritized by me?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Being chosen",
+    "level": 3,
+    "text": "What would make you feel more intentionally chosen in this season of our relationship?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Emotional weather",
+    "level": 1,
+    "text": "What feeling has been visiting you a lot lately?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Emotional weather",
+    "level": 2,
+    "text": "What feeling do you think I might underestimate in you right now?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Emotional weather",
+    "level": 3,
+    "text": "What emotion feels hardest to bring fully into our relationship lately?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Repair and reset",
+    "level": 1,
+    "text": "What usually helps you reset after a hard or disconnected day?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Repair and reset",
+    "level": 2,
+    "text": "What tends to keep disconnection going longer than it needs to?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Repair and reset",
+    "level": 3,
+    "text": "What kind of repair helps you trust that a hard moment does not define us?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Desire and aliveness",
+    "level": 1,
+    "text": "What has made you feel more alive lately?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Desire and aliveness",
+    "level": 2,
+    "text": "What kind of attention or affection lands best with you these days?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Desire and aliveness",
+    "level": 3,
+    "text": "What part of our connection would you most like to bring back to life more fully?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Looking underneath",
+    "level": 1,
+    "text": "What have you been thinking about lately that has not had much room yet?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Looking underneath",
+    "level": 2,
+    "text": "What question about your life feels especially alive for you right now?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Looking underneath",
+    "level": 3,
+    "text": "What deeper conversation do you wish we had sooner instead of later?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Us, on purpose",
+    "level": 1,
+    "text": "What is one thing we are doing well together right now?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Us, on purpose",
+    "level": 2,
+    "text": "What is one part of us that deserves more care or intention?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Us, on purpose",
+    "level": 3,
+    "text": "What do you most hope grows between us over the next few months?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Little moments",
+    "level": 1,
+    "text": "What was a small, forgettable moment recently that actually meant something to you?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Little moments",
+    "level": 2,
+    "text": "Where in our everyday routine do you secretly feel most connected to me?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Little moments",
+    "level": 3,
+    "text": "If you could freeze-frame one recent moment between us and keep it forever, which would you choose and why?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Under the surface",
+    "level": 1,
+    "text": "What has been quietly draining your energy lately that I might not see at first glance?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Under the surface",
+    "level": 2,
+    "text": "What story has your brain been telling about us recently that you’re not sure is fully true?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Under the surface",
+    "level": 3,
+    "text": "What fear about our relationship feels important to say out loud, even if it’s uncomfortable?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Support in practice",
+    "level": 1,
+    "text": "What is one practical thing I do that makes your life a little easier?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Support in practice",
+    "level": 2,
+    "text": "When you’re overwhelmed, what kind of support from me feels good and what kind feels like pressure?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Support in practice",
+    "level": 3,
+    "text": "If you could redesign the way I show up for you during hard weeks, what would you change first?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Bodies and comfort",
+    "level": 1,
+    "text": "What kind of physical touch feels most comforting to you right now?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Bodies and comfort",
+    "level": 2,
+    "text": "What helps you feel safe enough to actually relax into physical closeness with me?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Bodies and comfort",
+    "level": 3,
+    "text": "What would you like me to understand better about your relationship to desire, touch, or physical affection these days?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Being on the same team",
+    "level": 1,
+    "text": "When do you most feel like we’re on the same team in daily life?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Being on the same team",
+    "level": 2,
+    "text": "When do you start to feel like we’ve drifted into separate lanes instead of moving together?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Being on the same team",
+    "level": 3,
+    "text": "What would it look like, in concrete terms, for us to show up more like teammates in this season?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Appreciation in real time",
+    "level": 1,
+    "text": "What is something I’ve done recently that you appreciated but didn’t say much about at the time?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Appreciation in real time",
+    "level": 2,
+    "text": "What kind of appreciation lands most deeply with you: words, actions, time together, or something else?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Appreciation in real time",
+    "level": 3,
+    "text": "Where do you wish you felt more seen or appreciated by me in the day-to-day of our life together?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Tension and repair",
+    "level": 1,
+    "text": "How do you usually know, inside yourself, that something between us needs a conversation?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Tension and repair",
+    "level": 2,
+    "text": "What’s one small thing I could do differently during tense moments that would help you stay more grounded?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Tension and repair",
+    "level": 3,
+    "text": "What kind of repair or follow-up helps you believe that conflict actually moved us forward instead of just passed?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Hope and desire",
+    "level": 1,
+    "text": "What are you quietly looking forward to with me in the near future, even if it’s small?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Hope and desire",
+    "level": 2,
+    "text": "What kind of experiences make you feel most alive and connected to us as a couple?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Hope and desire",
+    "level": 3,
+    "text": "If you could name one thing you deeply desire more of between us right now, what would it be?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Identity inside the relationship",
+    "level": 1,
+    "text": "What part of yourself feels most at home in this relationship?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Identity inside the relationship",
+    "level": 2,
+    "text": "What part of yourself do you sometimes feel you have to tuck away or minimize with me?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Identity inside the relationship",
+    "level": 3,
+    "text": "What version of you would you love to bring more fully into our relationship if it felt safe enough?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Looking ahead together",
+    "level": 1,
+    "text": "What is one small change to our routine that you think would make our days feel better for both of us?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Looking ahead together",
+    "level": 2,
+    "text": "If the next few months went really well for us, what would feel noticeably different in our connection?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Looking ahead together",
+    "level": 3,
+    "text": "What is one intentional experiment you’d like us to try to strengthen our relationship?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Origin story remix",
+    "level": 1,
+    "text": "If you were telling the story of how we met to a stranger, what funny or random detail would you make sure to include?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Origin story remix",
+    "level": 2,
+    "text": "Looking back, what was your real first impression of me, not the polite version?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Origin story remix",
+    "level": 3,
+    "text": "If you could go back and give early-us one playful piece of advice, what would you say?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Inside jokes",
+    "level": 1,
+    "text": "What is one silly memory or inside joke of ours that still makes you smile when you think about it?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Inside jokes",
+    "level": 2,
+    "text": "If we had a secret code word for 'I need a little lightness right now,' what would you pick and why?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Inside jokes",
+    "level": 3,
+    "text": "Where would you like us to have more silliness or play in our relationship than we currently do?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Tiny celebrations",
+    "level": 1,
+    "text": "What is a tiny win from this week that you’d love to celebrate for a minute with me right now?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Tiny celebrations",
+    "level": 2,
+    "text": "If we made up a small, ridiculous tradition to celebrate finishing a long day, what would it be?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Tiny celebrations",
+    "level": 3,
+    "text": "What would it look like for us to be more intentional about celebrating everyday things, not just big milestones?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Alternate universe us",
+    "level": 1,
+    "text": "In an alternate universe, what completely different job or life do you imagine me having?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Alternate universe us",
+    "level": 2,
+    "text": "If we swapped lives for a week, what part of my world do you think would surprise you most?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Alternate universe us",
+    "level": 3,
+    "text": "If we could press pause on real life and try a bold 'alternate life' together for one month, what would you want to experiment with?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Nostalgia trip",
+    "level": 1,
+    "text": "Which phase of our relationship so far was the most fun, and what made it feel that way to you?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Nostalgia trip",
+    "level": 2,
+    "text": "What is one early memory of us that you don’t think I realize is important to you?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Nostalgia trip",
+    "level": 3,
+    "text": "What is one element from an earlier version of us that you’d love to consciously bring back now?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Friendly roasting",
+    "level": 1,
+    "text": "What is a harmless habit of mine that gently cracks you up every time you notice it?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Friendly roasting",
+    "level": 2,
+    "text": "If you had to pretend you were imitating me for 10 seconds, what would you do or say?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Friendly roasting",
+    "level": 3,
+    "text": "Where is the line for you between playful teasing that feels connecting and teasing that starts to sting?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Low-stakes adventure",
+    "level": 1,
+    "text": "If we had two free hours tonight and had to do something out of our normal routine, what would you want to do together?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Low-stakes adventure",
+    "level": 2,
+    "text": "What kind of small adventure would make you think, 'That felt really us' afterwards?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Low-stakes adventure",
+    "level": 3,
+    "text": "If we made a 'no-pressure adventure list' for the next few months, what is one thing that definitely belongs on it?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Secret favorites",
+    "level": 1,
+    "text": "What is something small I do that you secretly love but don’t think I realize matters to you?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Secret favorites",
+    "level": 2,
+    "text": "If you had to pick a 'greatest hits' reel of three favorite moments with me, what would be on it?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Secret favorites",
+    "level": 3,
+    "text": "What kind of moment with me do you hope you still get to have versions of 10 years from now?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Playful future",
+    "level": 1,
+    "text": "If we declared a completely made-up holiday for just the two of us, what would we be celebrating and how?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Playful future",
+    "level": 2,
+    "text": "Imagine a perfect lazy day for us a year from now. What are we doing and what’s the vibe between us?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Playful future",
+    "level": 3,
+    "text": "If we look back five years from now and say, 'That’s when things got more fun for us,' what will we have started doing differently?"
+  },
+
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Flirty curiosity",
+    "level": 1,
+    "text": "What is a compliment you like receiving from me that I don’t give you very often?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Flirty curiosity",
+    "level": 2,
+    "text": "What subtle thing do I do that you find attractive, even if it’s not traditionally 'sexy'?"
+  },
+  {
+    "mode": "couples",
+    "modeTitle": "Couples",
+    "theme": "Flirty curiosity",
+    "level": 3,
+    "text": "What kind of playful or flirty energy would you love to see more of between us, in a way that still feels safe and grounded?"
+  }
+];
+const state = {theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light', deck: structuredClone(starterDeck), currentMode: 'couples', filtered: [], currentIndex: 0, reviewed: new Set(), filter: 'all', sessionName: ''};
+const $ = id => document.getElementById(id);
+const els = {themeToggle:$('themeToggle'),shuffleBtn:$('shuffleBtn'),exportBtn:$('exportBtn'),importBtn:$('importBtn'),modeGrid:$('modeGrid'),modeSummary:$('modeSummary'),filterLevel:$('filterLevel'),personName:$('personName'),prevBtn:$('prevBtn'),nextBtn:$('nextBtn'),queueList:$('queueList'),metaChips:$('metaChips'),sessionLabel:$('sessionLabel'),countChip:$('countChip'),levelBadge:$('levelBadge'),questionText:$('questionText'),promptNote:$('promptNote'),progressText:$('progressText'),filterText:$('filterText'),progressFill:$('progressFill'),copyBtn:$('copyBtn'),removeBtn:$('removeBtn'),randomDeepBtn:$('randomDeepBtn'),threeCardBtn:$('threeCardBtn'),modeTitle:$('modeTitle'),modeDescription:$('modeDescription'),modeFlow:$('modeFlow'),newTheme:$('newTheme'),newLevel:$('newLevel'),newPrompt:$('newPrompt'),addPromptBtn:$('addPromptBtn'),editorDialog:$('editorDialog'),jsonEditor:$('jsonEditor'),applyJsonBtn:$('applyJsonBtn'),drawThreePanel:$('drawThreePanel'),drawThreeList:$('drawThreeList')};
+function setTheme(nextTheme){state.theme=nextTheme;document.documentElement.setAttribute('data-theme',nextTheme);els.themeToggle.innerHTML=nextTheme==='dark'?'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>':'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';els.themeToggle.setAttribute('aria-label',`Switch to ${nextTheme==='dark'?'light':'dark'} mode`);}
+function shuffle(array){const copy=[...array];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
+function getModeDeck(){return state.deck.filter(card=>card.mode===state.currentMode);}
+function getFilteredDeck(){return getModeDeck().filter(card=>state.filter==='all'?true:String(card.level)===state.filter);}
+function renderModes(){els.modeGrid.innerHTML='';Object.entries(MODES).forEach(([key,mode])=>{const btn=document.createElement('button');btn.type='button';btn.className=`mode-card ${key===state.currentMode?'active':''}`;btn.innerHTML=`<div aria-hidden="true" style="font-size:1.4rem;">${mode.icon}</div><strong>${mode.title}</strong><span>${mode.description}</span>`;btn.addEventListener('click',()=>{state.currentMode=key;state.currentIndex=0;state.reviewed.clear();render();});els.modeGrid.appendChild(btn);});const current=MODES[state.currentMode];els.modeSummary.textContent=`${current.title} mode is active. ${current.description}`;els.modeTitle.textContent=`${current.icon} ${current.title}`;els.modeDescription.textContent=current.description;els.modeFlow.textContent=state.currentMode==='after-tension'?'Suggested flow: Level 1 to regulate, Level 2 to name what happened, Level 3 only when both of you feel steady enough for honesty and repair.':state.currentMode==='future-planning'?'Suggested flow: use Level 1 to dream and orient, Level 2 to surface needs and tradeoffs, Level 3 to name what matters most beneath the plans.':'Suggested flow: start with everyday emotional texture, then move toward what feels less named. The Couples mode is built specifically to get beyond status updates and into what is actually going on between you.';}
+function updateMeta(){const deck=getModeDeck();const levelCounts=[1,2,3].map(level=>deck.filter(card=>card.level===level).length);const name=state.sessionName.trim()||MODES[state.currentMode].title;els.metaChips.innerHTML='';[`${name}`,`${deck.length} cards in mode`,`L1 ${levelCounts[0]} · L2 ${levelCounts[1]} · L3 ${levelCounts[2]}`].forEach(text=>{const chip=document.createElement('span');chip.className='chip';chip.textContent=text;els.metaChips.appendChild(chip);});}
+function renderQueue(){els.queueList.innerHTML='';state.filtered.forEach((card,index)=>{const btn=document.createElement('button');btn.type='button';btn.className=index===state.currentIndex?'active':'';btn.innerHTML=`<strong>${card.theme} · Level ${card.level}</strong><br><span class='helper'>${card.text}</span>`;btn.addEventListener('click',()=>{state.currentIndex=index;state.reviewed.add(card.text);render();});els.queueList.appendChild(btn);});}
+function renderCurrent(){if(!state.filtered.length){els.levelBadge.className='level-badge level-1';els.levelBadge.textContent='No cards';els.questionText.textContent='No prompts match this filter yet.';els.promptNote.textContent='Switch the level filter, switch modes, or add a new prompt.';return;}const card=state.filtered[state.currentIndex];els.levelBadge.className=`level-badge level-${card.level}`;els.levelBadge.textContent=`${card.theme} · Level ${card.level}`;els.questionText.textContent=card.text;els.promptNote.textContent=card.level===1?'A lighter opener to ease into the mode.':card.level===2?'A reflective prompt to move the conversation one layer deeper.':'A deeper prompt. Use it when the moment feels genuinely open and welcome.';state.reviewed.add(card.text);}
+function renderThreeCard(cards=[]){if(!cards.length){els.drawThreePanel.style.display='none';els.drawThreeList.innerHTML='';return;}els.drawThreePanel.style.display='block';els.drawThreeList.innerHTML='';cards.forEach(card=>{const item=document.createElement('div');item.style.padding='var(--space-3)';item.style.border='1px solid color-mix(in srgb,var(--color-text) 8%,transparent)';item.style.borderRadius='var(--radius-md)';item.style.background='var(--color-surface-2)';item.innerHTML=`<strong>${card.theme} · Level ${card.level}</strong><br><span class='helper'>${card.text}</span>`;els.drawThreeList.appendChild(item);});}
+function drawThree(){const modeDeck=getModeDeck();const picks=[];[1,2,3].forEach(level=>{const options=shuffle(modeDeck.filter(card=>card.level===level));if(options[0])picks.push(options[0]);});renderThreeCard(picks);if(picks.length){const first=state.filtered.findIndex(card=>card.text===picks[0].text);if(first>=0)state.currentIndex=first;render();renderThreeCard(picks);}}
+function renderProgress(){const total=state.filtered.length;const reviewedCount=state.filtered.filter(card=>state.reviewed.has(card.text)).length;const pct=total?Math.round((reviewedCount/total)*100):0;els.progressText.textContent=`${reviewedCount} of ${total} reviewed`;els.progressFill.style.width=`${pct}%`;els.countChip.textContent=`${total} prompts loaded`;els.filterText.textContent=state.filter==='all'?'Showing all levels':`Showing level ${state.filter}`;const name=state.sessionName.trim()||MODES[state.currentMode].title;els.sessionLabel.textContent=`${name} · ${MODES[state.currentMode].title} mode`;}
+function render(){state.filtered=getFilteredDeck();if(state.currentIndex>Math.max(state.filtered.length-1,0))state.currentIndex=0;renderModes();updateMeta();renderQueue();renderCurrent();renderProgress();els.jsonEditor.value=JSON.stringify(state.deck,null,2);}
+function nextCard(step=1){if(!state.filtered.length)return;state.currentIndex=(state.currentIndex+step+state.filtered.length)%state.filtered.length;render();}
+function exportDeck(){const payload={exportedAt:new Date().toISOString(),prompts:state.deck};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='connection-card-deck-modes.json';a.click();URL.revokeObjectURL(a.href);}
+function copyCurrent(){if(!state.filtered.length)return;const card=state.filtered[state.currentIndex];const text=`${card.modeTitle} · ${card.theme} · Level ${card.level}: ${card.text}`;navigator.clipboard?.writeText(text);}
+function removeCurrent(){if(!state.filtered.length)return;const current=state.filtered[state.currentIndex];const idx=state.deck.findIndex(card=>card.mode===current.mode&&card.theme===current.theme&&card.level===current.level&&card.text===current.text);if(idx>=0)state.deck.splice(idx,1);state.reviewed.delete(current.text);state.currentIndex=0;render();}
+function jumpToDeep(){const deepCards=getModeDeck().filter(card=>card.level===3);if(!deepCards.length)return;state.filter='3';els.filterLevel.value='3';state.filtered=getFilteredDeck();state.currentIndex=Math.floor(Math.random()*state.filtered.length);render();}
+function addPrompt(){const text=els.newPrompt.value.trim();if(!text)return;state.deck.push({mode:state.currentMode,modeTitle:MODES[state.currentMode].title,theme:els.newTheme.value.trim()||'Custom',level:Number(els.newLevel.value),text});els.newPrompt.value='';els.newTheme.value='';render();}
+function applyJson(){try{const parsed=JSON.parse(els.jsonEditor.value);const prompts=Array.isArray(parsed)?parsed:parsed.prompts;if(!Array.isArray(prompts))throw new Error('Deck must be an array.');state.deck=prompts.filter(item=>item&&item.text&&item.mode).map(item=>({mode:String(item.mode).trim(),modeTitle:String(item.modeTitle||MODES[item.mode]?.title||item.mode).trim(),theme:String(item.theme||'Imported').trim()||'Imported',level:Math.min(3,Math.max(1,Number(item.level)||1)),text:String(item.text).trim()})).filter(item=>item.text.length);state.currentIndex=0;state.reviewed.clear();if(!MODES[state.currentMode])state.currentMode='trail-day';render();els.editorDialog.close();}catch(error){alert('Could not read that JSON. Check the format and try again.');}}
+els.themeToggle.addEventListener('click',()=>setTheme(state.theme==='dark'?'light':'dark'));els.shuffleBtn.addEventListener('click',()=>{const others=state.deck.filter(card=>card.mode!==state.currentMode);const current=shuffle(getModeDeck());state.deck=[...others,...current];state.currentIndex=0;state.reviewed.clear();render();});els.exportBtn.addEventListener('click',exportDeck);els.importBtn.addEventListener('click',()=>{els.jsonEditor.value=JSON.stringify(state.deck,null,2);els.editorDialog.showModal();});els.filterLevel.addEventListener('change',e=>{state.filter=e.target.value;state.currentIndex=0;render();});els.personName.addEventListener('input',e=>{state.sessionName=e.target.value;updateMeta();renderProgress();});els.prevBtn.addEventListener('click',()=>nextCard(-1));els.nextBtn.addEventListener('click',()=>nextCard(1));els.copyBtn.addEventListener('click',copyCurrent);els.removeBtn.addEventListener('click',removeCurrent);els.randomDeepBtn.addEventListener('click',jumpToDeep);els.threeCardBtn.addEventListener('click',drawThree);els.addPromptBtn.addEventListener('click',addPrompt);els.applyJsonBtn.addEventListener('click',event=>{event.preventDefault();applyJson();});document.addEventListener('keydown',event=>{if(event.key==='ArrowRight')nextCard(1);if(event.key==='ArrowLeft')nextCard(-1);if(event.key.toLowerCase()==='d')jumpToDeep();});setTheme(state.theme);render();
+</script>
+</body>
+</html>
