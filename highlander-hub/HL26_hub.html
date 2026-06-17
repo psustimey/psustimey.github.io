@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Highlander 2026 - Trip Hub</title>
+<style>
+:root{--bg:#f5f5f0;--card:#fff;--pri:#2c3e50;--trek:#2c4a3e;--city:#3a4a6e;--text:#2d2d2d;--mut:#6b7280;--bdr:#d1d5db;--shd:0 2px 12px rgba(0,0,0,.10)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 48px}
+.hero{background:linear-gradient(135deg,#1a2a1f 0%,#2c3e50 100%);color:#fff;padding:44px 24px 36px;text-align:center}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;opacity:.6;margin-bottom:10px}
+.hero h1{font-size:2.1rem;font-weight:800;letter-spacing:-.5px;margin-bottom:8px}
+.hero-sub{font-size:.95rem;opacity:.75;margin-bottom:26px}
+.stats{display:flex;justify-content:center;gap:30px;flex-wrap:wrap}
+.stat{text-align:center}
+.stat strong{display:block;font-size:1.5rem;font-weight:700}
+.stat span{font-size:.76rem;opacity:.65}
+.cbar{background:rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.1);padding:13px 24px;display:flex;justify-content:center;align-items:center;gap:8px;font-size:.88rem;color:rgba(255,255,255,.85)}
+.cbar strong{color:#7dd3a8;font-size:1.05rem}
+.main{max-width:900px;margin:0 auto;padding:28px 16px 0}
+.lbl{font-size:.74rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mut);margin-bottom:10px;font-weight:600}
+.timeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px;margin-bottom:28px}
+.tl{background:var(--card);border-radius:10px;padding:11px 13px;box-shadow:var(--shd);border-top:3px solid var(--bdr);font-size:.8rem}
+.tl.flight{border-color:#6366f1}.tl.hotel{border-color:#0ea5e9}.tl.trek{border-color:#16a34a}.tl.car{border-color:#f59e0b}
+.tl-d{font-size:.7rem;color:var(--mut);margin-bottom:2px}
+.tl-t{font-weight:700;color:var(--text);margin-bottom:2px}
+.tl-s{color:var(--mut);font-size:.76rem}
+.mand{background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:15px 18px;margin-bottom:28px}
+.mand h3{font-size:.82rem;font-weight:700;color:#92400e;margin-bottom:9px;text-transform:uppercase;letter-spacing:.05em}
+.mand-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.mi{display:flex;align-items:flex-start;gap:7px;font-size:.82rem;color:#78350f}
+.md{color:#f59e0b;flex-shrink:0;margin-top:1px}
+.cl-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+@media(max-width:540px){.cl-grid{grid-template-columns:1fr}}
+.cc{border-radius:12px;overflow:hidden;box-shadow:var(--shd);display:flex;flex-direction:column}
+.cc-hdr{padding:20px 20px 16px;color:#fff}
+.cc-trek{background:linear-gradient(135deg,#2c4a3e,#3d6b54)}
+.cc-city{background:linear-gradient(135deg,#3a4a6e,#4a5e8a)}
+.cc-hdr h2{font-size:1.1rem;font-weight:700;margin-bottom:3px}
+.cc-hdr p{font-size:.8rem;opacity:.8}
+.cc-body{background:var(--card);padding:16px 20px;flex:1;display:flex;flex-direction:column;gap:9px}
+.pg-lbl{display:flex;justify-content:space-between;font-size:.78rem;color:var(--mut);margin-bottom:5px}
+.pg-track{height:7px;background:var(--bdr);border-radius:99px;overflow:hidden}
+.pg-fill{height:100%;border-radius:99px;width:0%;transition:width .4s}
+.fill-t{background:#3d6b54}.fill-c{background:#4a5e8a}
+.mr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f5f5f0;font-size:.81rem}
+.mr:last-of-type{border-bottom:none}
+.mr-n{color:var(--text);font-weight:500}
+.mr-c{color:var(--mut);font-size:.76rem}
+.obtn{display:block;width:100%;padding:10px;border-radius:8px;border:none;font-size:.88rem;font-weight:600;cursor:pointer;text-decoration:none;text-align:center;margin-top:6px;transition:opacity .2s;color:#fff}
+.obtn:hover{opacity:.86}
+.obtn-t{background:#2c4a3e}.obtn-c{background:#3a4a6e}
+.qr{background:var(--card);border-radius:12px;padding:18px 20px;box-shadow:var(--shd);margin-bottom:28px}
+.qr h3{font-size:.9rem;font-weight:700;margin-bottom:12px}
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.qi{background:#f9f9f7;border-radius:8px;padding:9px 11px;font-size:.8rem}
+.qi label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);margin-bottom:2px}
+.qi strong{color:var(--text)}
+@media print{body{background:#fff}.hero{background:#1a2a1f!important;-webkit-print-color-adjust:exact}.obtn{display:none}}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="eyebrow">Jonathan and Alan · Big Bear, CA</div>
+  <h1>🏔 Highlander 2026</h1>
+  <div class="hero-sub">Hercules Full Route · June 20–29, 2026 · PIT to LAX</div>
+  <div class="stats">
+    <div class="stat"><strong>~60</strong><span>Miles on trail</span></div>
+    <div class="stat"><strong>9,800 ft</strong><span>Total ascent</span></div>
+    <div class="stat"><strong>5</strong><span>Days hiking</span></div>
+    <div class="stat"><strong>4</strong><span>Hotel nights</span></div>
+  </div>
+</div>
+<div class="cbar">Trek starts <strong id="cd">calculating...</strong></div>
+<div class="main">
+
+  <div class="lbl">Trip Itinerary</div>
+  <div class="timeline">
+    <div class="tl flight"><div class="tl-d">Sat Jun 20</div><div class="tl-t">✈️ Fly PIT to LAX</div><div class="tl-s">UA744 · 5:55 PM<br>Conf: DG4QLW</div></div>
+    <div class="tl car"><div class="tl-d">Sat Jun 20</div><div class="tl-t">🚗 Car Pickup · LAX</div><div class="tl-s">National · 2108681517<br>Return Jun 29</div></div>
+    <div class="tl hotel"><div class="tl-d">Jun 20–22 · 2 nights</div><div class="tl-t">🏖 Residence Inn</div><div class="tl-s">Marina del Rey<br>Conf: 70586962</div></div>
+    <div class="tl hotel"><div class="tl-d">Jun 22–23 · 1 night</div><div class="tl-t">🏔 Sessions Retreat</div><div class="tl-s">Big Bear · Pre-Trek<br>Conf: 2097464310851</div></div>
+    <div class="tl trek"><div class="tl-d">Jun 23–27 · 5 days</div><div class="tl-t">🏕 Highlander Trek</div><div class="tl-s">Hercules Full Route<br>Sleeping on trail</div></div>
+    <div class="tl hotel"><div class="tl-d">Jun 27–28 · 1 night</div><div class="tl-t">🎉 Postcard Cabins</div><div class="tl-s">Big Bear · Post-Trek<br>Conf: 83779495</div></div>
+    <div class="tl hotel"><div class="tl-d">Jun 28–29 · 1 night</div><div class="tl-t">🌆 AC Hotel</div><div class="tl-s">LA South Bay<br>Conf: 6Q0U5XZSSV</div></div>
+    <div class="tl flight"><div class="tl-d">Mon Jun 29</div><div class="tl-t">✈️ Fly LAX to PIT</div><div class="tl-s">UA2039 · 9:00 AM<br>Conf: DG4QLW</div></div>
+  </div>
+
+  <div class="mand">
+    <h3>⚠️ Mandatory Items — Do Not Forget</h3>
+    <div class="mand-grid">
+      <div class="mi"><span class="md">▸</span><span><strong>California Fire Permit</strong> — required to use propane stove; watch 3-min video online to obtain</span></div>
+      <div class="mi"><span class="md">▸</span><span><strong>4L Water Capacity</strong> — must start with full 4L at registration (3L bladder + 1L Nalgene)</span></div>
+      <div class="mi"><span class="md">▸</span><span><strong>Warm Midlayer / Puffy</strong> — mandatory gear check item; nights drop to 50s F at 7,000 ft</span></div>
+      <div class="mi"><span class="md">▸</span><span><strong>Gear Check In Person</strong> — must attend; others cannot check in for you</span></div>
+    </div>
+  </div>
+
+  <div class="lbl">Packing Checklists</div>
+  <div class="cl-grid">
+    <div class="cc">
+      <div class="cc-hdr cc-trek">
+        <h2>🏔 Trek Pack</h2>
+        <p>Gregory Zulu 65 · 10 modules · On trail Jun 23–27</p>
+      </div>
+      <div class="cc-body">
+        <div>
+          <div class="pg-lbl"><span>Packed: <strong id="tp">0</strong> / 60</span><span id="tpct">0%</span></div>
+          <div class="pg-track"><div class="pg-fill fill-t" id="tf"></div></div>
+        </div>
+        <div>
+          <div class="mr"><span class="mr-n">1 · Sleep System</span><span class="mr-c">6 items</span></div>
+          <div class="mr"><span class="mr-n">2 · Trail Clothing</span><span class="mr-c">7 items · worn + packed</span></div>
+          <div class="mr"><span class="mr-n">3 · Electronics</span><span class="mr-c">5 items</span></div>
+          <div class="mr"><span class="mr-n">4 · Active Layers</span><span class="mr-c">5 items</span></div>
+          <div class="mr"><span class="mr-n">5 · First Aid and Foot</span><span class="mr-c">8 items</span></div>
+          <div class="mr"><span class="mr-n">6 · Food (Daily)</span><span class="mr-c">7 items</span></div>
+          <div class="mr"><span class="mr-n">7 · Cook Kit</span><span class="mr-c">8 items</span></div>
+          <div class="mr"><span class="mr-n">8 · Water System</span><span class="mr-c">4 items</span></div>
+          <div class="mr"><span class="mr-n">9 · Docs and Valuables</span><span class="mr-c">5 items</span></div>
+          <div class="mr"><span class="mr-n">10 · Wet / External</span><span class="mr-c">5 items</span></div>
+        </div>
+        <a href="HL26_trek_pack.html" class="obtn obtn-t">Open Trek Pack Checklist →</a>
+      </div>
+    </div>
+    <div class="cc">
+      <div class="cc-hdr cc-city">
+        <h2>🧳 City Bag</h2>
+        <p>Stays in rental car · 4 hotel nights</p>
+      </div>
+      <div class="cc-body">
+        <div>
+          <div class="pg-lbl"><span>Packed: <strong id="cp">0</strong> / 42</span><span id="cpct">0%</span></div>
+          <div class="pg-track"><div class="pg-fill fill-c" id="cf"></div></div>
+        </div>
+        <div>
+          <div class="mr"><span class="mr-n">Travel Day Outfit</span><span class="mr-c">4 items · worn flying</span></div>
+          <div class="mr"><span class="mr-n">Trek Start Outfit</span><span class="mr-c">5 items · worn Day 1</span></div>
+          <div class="mr"><span class="mr-n">Clothing (City Only)</span><span class="mr-c">5 items</span></div>
+          <div class="mr"><span class="mr-n">Footwear</span><span class="mr-c">1 item</span></div>
+          <div class="mr"><span class="mr-n">Toiletries (Full Size)</span><span class="mr-c">8 items</span></div>
+          <div class="mr"><span class="mr-n">Electronics and Cables</span><span class="mr-c">5 items</span></div>
+          <div class="mr"><span class="mr-n">Pre-Trek Admin</span><span class="mr-c">4 items</span></div>
+          <div class="mr"><span class="mr-n">Post-Trek Recovery</span><span class="mr-c">5 items</span></div>
+          <div class="mr"><span class="mr-n">Car and Logistics</span><span class="mr-c">5 items</span></div>
+        </div>
+        <a href="HL26_city_bag.html" class="obtn obtn-c">Open City Bag Checklist →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="lbl">Quick Reference</div>
+  <div class="qr">
+    <div class="qr-grid">
+      <div class="qi"><label>Flight Out</label><strong>UA744 · PIT to LAX · Jun 20 5:55 PM</strong></div>
+      <div class="qi"><label>Flight Home</label><strong>UA2039 · LAX to PIT · Jun 29 9:00 AM</strong></div>
+      <div class="qi"><label>Rental Car</label><strong>National · Conf: 2108681517</strong></div>
+      <div class="qi"><label>Trek Start</label><strong>Jun 23 · Hercules Full Route</strong></div>
+      <div class="qi"><label>Elevation</label><strong>~7,000 ft · Warm days · 50s F nights</strong></div>
+      <div class="qi"><label>Water Mandatory</label><strong>4L minimum at start</strong></div>
+      <div class="qi"><label>Pack</label><strong>Gregory Zulu 65 · 3L bladder</strong></div>
+      <div class="qi"><label>Shoes</label><strong>Hoka Speedgoat 7 (confirmed fit)</strong></div>
+      <div class="qi"><label>Sleeping Bag</label><strong>NEMO Disco 15F · Tensor pad</strong></div>
+      <div class="qi"><label>Communication</label><strong>Garmin inReach (confirm plan active)</strong></div>
+      <div class="qi"><label>Travel Outfit = City #1</label><strong>What you fly in = first hotel outfit</strong></div>
+      <div class="qi"><label>Fire Permit</label><strong>Required before gear check — get online</strong></div>
+    </div>
+  </div>
+
+</div>
+<script>
+function updateCD() {
+  var start = new Date('2026-06-23T00:00:00');
+  var now = new Date();
+  var diff = start - now;
+  if (diff <= 0) { document.getElementById('cd').textContent = 'The trek has begun!'; return; }
+  var days = Math.floor(diff / 86400000);
+  var hours = Math.floor((diff % 86400000) / 3600000);
+  document.getElementById('cd').textContent = 'in ' + days + ' day' + (days !== 1 ? 's' : '') + ' and ' + hours + ' hour' + (hours !== 1 ? 's' : '');
+}
+updateCD(); setInterval(updateCD, 60000);
+function loadProgress() {
+  var ts = JSON.parse(localStorage.getItem('HL26-trek') || '{}');
+  var cs = JSON.parse(localStorage.getItem('HL26-city') || '{}');
+  var tc = Object.keys(ts).length, cc = Object.keys(cs).length;
+  document.getElementById('tp').textContent = tc;
+  document.getElementById('tpct').textContent = Math.round(tc / 60 * 100) + '%';
+  document.getElementById('tf').style.width = Math.round(tc / 60 * 100) + '%';
+  document.getElementById('cp').textContent = cc;
+  document.getElementById('cpct').textContent = Math.round(cc / 42 * 100) + '%';
+  document.getElementById('cf').style.width = Math.round(cc / 42 * 100) + '%';
+}
+loadProgress();
+window.addEventListener('storage', loadProgress);
+</script>
+</body>
+</html>
