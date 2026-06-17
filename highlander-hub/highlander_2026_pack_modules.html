@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Highlander 2026 — Pack Module Checklist</title>
+<style>
+  :root {
+    --bg: #f5f5f0;
+    --card: #ffffff;
+    --primary: #2c4a3e;
+    --accent: #5a8a6e;
+    --light-accent: #e8f0ec;
+    --text: #2d2d2d;
+    --muted: #6b7280;
+    --border: #d1d5db;
+    --checked-bg: #f0f7f3;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px 16px 48px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  header {
+    background: var(--primary);
+    color: white;
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.3px; }
+  header p { font-size: 0.9rem; opacity: 0.8; margin-top: 4px; }
+  .header-badge {
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+  .header-badge strong { display: block; font-size: 1.5rem; }
+
+  .progress-bar-wrap {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .progress-bar-track {
+    flex: 1;
+    height: 10px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .progress-label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
+  .progress-count { font-weight: 600; color: var(--primary); }
+
+  .zone-table {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+  }
+  .zone-table h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { text-align: left; color: var(--muted); font-weight: 600; padding: 4px 8px 8px; border-bottom: 1px solid var(--border); }
+  td { padding: 6px 8px; border-bottom: 1px solid #f0f0ec; }
+  tr:last-child td { border-bottom: none; }
+  .zone-tag {
+    display: inline-block;
+    background: var(--light-accent);
+    color: var(--primary);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+
+  .module {
+    background: var(--card);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .module-header {
+    background: var(--primary);
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .module-num {
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+  }
+  .module-title { font-weight: 600; font-size: 1rem; flex: 1; }
+  .module-meta { font-size: 0.78rem; opacity: 0.75; }
+  .module-chevron { font-size: 0.75rem; opacity: 0.7; transition: transform 0.2s; }
+  .module-header.collapsed .module-chevron { transform: rotate(-90deg); }
+  .module-body { padding: 4px 0; }
+  .module-body.hidden { display: none; }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 20px;
+    border-bottom: 1px solid #f5f5f0;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: #fafaf8; }
+  .item.checked { background: var(--checked-bg); }
+  .item.checked .item-text { color: var(--muted); text-decoration: line-through; }
+  .checkbox {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; margin-top: 1px;
+  }
+  .item.checked .checkbox { background: var(--accent); border-color: var(--accent); }
+  .checkmark { color: white; font-size: 0.75rem; display: none; }
+  .item.checked .checkmark { display: block; }
+  .item-text { font-size: 0.9rem; line-height: 1.4; }
+  .item-note { font-size: 0.78rem; color: var(--muted); display: block; margin-top: 2px; }
+
+  .mandatory-badge {
+    display: inline-block;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .print-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+  .print-btn:hover { background: var(--accent); }
+
+  .reset-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+  @media print {
+    body { background: white; padding: 0; }
+    header { border-radius: 0; }
+    .print-btn, .reset-btn, .progress-bar-wrap { display: none; }
+    .module { box-shadow: none; border: 1px solid var(--border); }
+    .module-body.hidden { display: block !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🏔 Highlander 2026 — Pack Modules</h1>
+    <p>Big Bear, CA · 5-Day Trek · Gregory Zulu 65</p>
+  </div>
+  <div class="header-badge">
+    <strong id="total-count">0</strong>
+    items total
+  </div>
+</header>
+
+<div class="progress-bar-wrap">
+  <span class="progress-label">Packed: <span class="progress-count" id="packed-count">0</span> / <span id="total-items">0</span></span>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill"></div></div>
+  <span class="progress-label" id="progress-pct">0%</span>
+</div>
+
+<div class="zone-table">
+  <h3>Pack Zone Map</h3>
+  <table>
+    <tr><th>Zone</th><th>What Goes Here</th></tr>
+    <tr><td><span class="zone-tag">Bottom</span></td><td>Module 1 (Sleep System), Module 2 (Clothing)</td></tr>
+    <tr><td><span class="zone-tag">Mid · back</span></td><td>3L Bladder (sleeve), Module 3 (Electronics), Module 6 (Food)</td></tr>
+    <tr><td><span class="zone-tag">Mid · front</span></td><td>Module 2 overflow, Module 7 (Cook Kit)</td></tr>
+    <tr><td><span class="zone-tag">Top</span></td><td>Module 4 (Active Layers)</td></tr>
+    <tr><td><span class="zone-tag">Lid pocket</span></td><td>Module 5 (First Aid / Foot Kit)</td></tr>
+    <tr><td><span class="zone-tag">Hip belt</span></td><td>Module 9 (Docs), small snack, lip balm</td></tr>
+    <tr><td><span class="zone-tag">Side pockets</span></td><td>Nalgene each side for balance</td></tr>
+    <tr><td><span class="zone-tag">External</span></td><td>Module 10 (Wet gear, trekking poles)</td></tr>
+  </table>
+</div>
+
+<!-- MODULES -->
+<div id="modules-container"></div>
+
+<button class="print-btn" onclick="window.print()">🖨 Print Checklist</button>
+<button class="reset-btn" onclick="resetAll()">↺ Reset All Checks</button>
+
+<script>
+const modules = [
+  {
+    num: 1,
+    title: "Sleep System",
+    meta: "15–20L roll-top dry bag · Bottom of pack · Open at camp only",
+    items: [
+      { text: "Sleeping bag", note: "Stuffed loosely, foot box first — no compression sack needed" },
+      { text: "Sleep top", note: "Lightweight merino or Capilene long-sleeve" },
+      { text: "Sleep bottoms", note: "Lightweight long underwear or running tights" },
+      { text: "Sleep socks", note: "One dedicated clean pair — never worn hiking" },
+      { text: "Sleep underwear", note: "One clean pair — sleep only" },
+      { text: "Beanie / sleep hat", note: "Significant warmth for cold Big Bear nights" },
+    ]
+  },
+  {
+    num: 2,
+    title: "Clothing",
+    meta: "8–10L roll-top dry bag · Bottom-mid of pack",
+    items: [
+      { text: "Spare hiking socks", note: "1–2 pairs" },
+      { text: "Spare underwear", note: "1–2 pairs" },
+      { text: "Warm midlayer / puffy", note: "Mandatory gear item per organizer", mandatory: true },
+      { text: "Spare hiking top", note: "Optional — one lightweight layer" },
+    ]
+  },
+  {
+    num: 3,
+    title: "Electronics",
+    meta: "2–4L roll-top dry bag · Mid zone, against back panel near bladder",
+    items: [
+      { text: "Power bank", note: "Keep charged before departure" },
+      { text: "Charging cables", note: "Phone, watch, inReach, headlamp — confirm all cables packed" },
+      { text: "Garmin inReach", note: "Check plan is active for June" },
+      { text: "Solar panel", note: "Folded flat; clip to pack in sunlight when moving" },
+      { text: "Headlamp + spare battery", note: "Test before packing" },
+    ]
+  },
+  {
+    num: 4,
+    title: "Active Hiking Layers",
+    meta: "No dry bag · Top zone or lid pocket · Frequent access",
+    items: [
+      { text: "Rain jacket / shell", note: "Quick access — may need fast in Big Bear afternoon storms" },
+      { text: "Sun hoody or light long-sleeve", note: "For sun and warmth on trail" },
+      { text: "Sunglasses", note: "" },
+      { text: "Sunscreen", note: "Warm, dry, ~7,000 ft — reapply frequently" },
+      { text: "Lip balm", note: "Hip belt pocket or top lid" },
+    ]
+  },
+  {
+    num: 5,
+    title: "First Aid & Foot Kit",
+    meta: "Small Ziploc · Top lid pocket · Quick access",
+    items: [
+      { text: "Blister kit", note: "Moleskin, Leukotape, needle, alcohol wipes — critical given current foot issues" },
+      { text: "Pain reliever / meds", note: "Ibuprofen, any personal medications" },
+      { text: "Bandages and gauze", note: "" },
+      { text: "Medical tape", note: "" },
+      { text: "Daily disposable contacts", note: "5 days of lenses + 1–2 extra pairs" },
+      { text: "Lubricating eye drops", note: "" },
+      { text: "Small dry cloth for contacts", note: "Keep in a separate small Ziploc" },
+      { text: "Hand sanitizer", note: "Also useful before contact lens handling" },
+    ]
+  },
+  {
+    num: 6,
+    title: "Food (Daily)",
+    meta: "Gallon Ziploc · Mid zone · Resupplied at each checkpoint",
+    items: [
+      { text: "Day 1: Breakfast + Lunch", note: "Provided at Start/Registration · Plus snacks, coffee, tea" },
+      { text: "Day 1: Dinner (Pasta)", note: "Provided at CP1 · Real cooking — will need pot wash" },
+      { text: "Day 2: Full day provisions", note: "Provided at CP1 · Breakfast, Lunch, Dinner (freeze-dried), snacks, fruits, beverages" },
+      { text: "Day 3: Full day provisions", note: "Provided at CP2 · Breakfast, Lunch, Dinner (freeze-dried), snacks, fruits, beverages" },
+      { text: "Day 4: Full day provisions", note: "Provided at CP3 · Breakfast, Lunch, Dinner, snacks, fruits, beverages" },
+      { text: "Day 4: Dinner (Tacos)", note: "Provided at CP4 · Real cooking — will need pot wash" },
+      { text: "Day 5: Breakfast + Lunch", note: "Provided at CP4 · Plus snacks, fruits, beverages" },
+    ]
+  },
+  {
+    num: 7,
+    title: "Cook Kit",
+    meta: "Mid zone · Nested near food bag",
+    items: [
+      { text: "Backpacking stove", note: "" },
+      { text: "Fuel canister", note: "Check fuel level before departure" },
+      { text: "Pot / cook set", note: "" },
+      { text: "Long-handled spoon", note: "Only utensil needed for freeze-dried meals" },
+      { text: "Mesh scrubby", note: "Small square cut from onion/produce bag — lightweight sponge alternative" },
+      { text: "Biodegradable soap (1 oz)", note: "Sea to Summit or CampSuds — one drop per wash" },
+      { text: "Small bandana / microfiber wipe", note: "For drying pot before repacking" },
+      { text: "Lighter or matches", note: "" },
+    ]
+  },
+  {
+    num: 8,
+    title: "Water System",
+    meta: "Bladder sleeve + side pockets · Primary weight anchor",
+    items: [
+      { text: "3L hydration bladder", note: "Mandatory: must start with full 4L capacity · Bladder covers 3L", mandatory: true },
+      { text: "1L Nalgene (Tritan)", note: "One side pocket · Brings total to 4L mandatory minimum", mandatory: true },
+      { text: "Water filter or treatment tabs", note: "Rivers and creeks on many days + organizer water stations" },
+      { text: "Soft bottle (optional)", note: "Opposite side pocket from Nalgene for balance" },
+    ]
+  },
+  {
+    num: 9,
+    title: "Docs & Valuables",
+    meta: "Quart freezer Ziploc · Hip belt pocket · Always accessible",
+    items: [
+      { text: "California fire permit", note: "MANDATORY — no permit = no propane stove use · Watch 3-min video to obtain", mandatory: true },
+      { text: "Photo ID", note: "" },
+      { text: "Insurance card", note: "" },
+      { text: "Cash / card", note: "Small amount for emergencies" },
+      { text: "Copy of route / itinerary", note: "Also leave a copy at home" },
+    ]
+  },
+  {
+    num: 10,
+    title: "Wet / External Gear",
+    meta: "Outside pack or front stretch pocket · Never inside dry bags",
+    items: [
+      { text: "Tent + stakes + footprint", note: "Split tent components with Alan for weight balance" },
+      { text: "Trekking poles", note: "External straps on pack" },
+      { text: "Pack cover (optional)", note: "Extra rain protection if forecast is wet" },
+      { text: "Wet rain jacket / fly", note: "Front stretch pocket until dry — don't put damp items in dry bags" },
+      { text: "Camp shoes / sandals", note: "Optional — external strap or bottom of pack if taking" },
+    ]
+  },
+];
+
+// Build modules
+const container = document.getElementById('modules-container');
+let totalItems = 0;
+
+modules.forEach((mod, mi) => {
+  totalItems += mod.items.length;
+  const div = document.createElement('div');
+  div.className = 'module';
+  const header = document.createElement('div');
+  header.className = 'module-header';
+  header.innerHTML = `
+    <div class="module-num">${mod.num}</div>
+    <div class="module-title">${mod.title}</div>
+    <div class="module-meta">${mod.meta}</div>
+    <span class="module-chevron">▼</span>
+  `;
+  const body = document.createElement('div');
+  body.className = 'module-body';
+  mod.items.forEach((item, ii) => {
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.dataset.id = `${mi}-${ii}`;
+    row.innerHTML = `
+      <div class="checkbox"><span class="checkmark">✓</span></div>
+      <div class="item-text">
+        ${item.text}${item.mandatory ? '<span class="mandatory-badge">MANDATORY</span>' : ''}
+        ${item.note ? `<span class="item-note">${item.note}</span>` : ''}
+      </div>
+    `;
+    row.addEventListener('click', () => toggleItem(row));
+    body.appendChild(row);
+  });
+  header.addEventListener('click', () => {
+    body.classList.toggle('hidden');
+    header.classList.toggle('collapsed');
+  });
+  div.appendChild(header);
+  div.appendChild(body);
+  container.appendChild(div);
+});
+
+document.getElementById('total-count').textContent = totalItems;
+document.getElementById('total-items').textContent = totalItems;
+updateProgress();
+
+function toggleItem(row) {
+  row.classList.toggle('checked');
+  const id = row.dataset.id;
+  const checked = JSON.parse(localStorage.getItem('highlander-checked') || '{}');
+  if (row.classList.contains('checked')) { checked[id] = true; }
+  else { delete checked[id]; }
+  localStorage.setItem('highlander-checked', JSON.stringify(checked));
+  updateProgress();
+}
+
+function updateProgress() {
+  const checked = JSON.parse(localStorage.getItem('highlander-checked') || '{}');
+  const count = Object.keys(checked).length;
+  document.getElementById('packed-count').textContent = count;
+  const pct = Math.round((count / totalItems) * 100);
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function resetAll() {
+  if (!confirm('Reset all checked items?')) return;
+  localStorage.removeItem('highlander-checked');
+  document.querySelectorAll('.item.checked').forEach(i => i.classList.remove('checked'));
+  updateProgress();
+}
+
+// Restore checked state from localStorage
+(function restoreState() {
+  const checked = JSON.parse(localStorage.getItem('highlander-checked') || '{}');
+  Object.keys(checked).forEach(id => {
+    const row = document.querySelector(`[data-id="${id}"]`);
+    if (row) row.classList.add('checked');
+  });
+  updateProgress();
+})();
+</script>
+</body>
+</html>

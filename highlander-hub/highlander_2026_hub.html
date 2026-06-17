@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Highlander 2026 — Trip Hub</title>
+<style>
+  :root {
+    --bg: #f5f5f0;
+    --card: #ffffff;
+    --primary: #2c3e50;
+    --trek: #2c4a3e;
+    --city: #3a4a6e;
+    --text: #2d2d2d;
+    --muted: #6b7280;
+    --border: #d1d5db;
+    --shadow: 0 2px 12px rgba(0,0,0,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 48px;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #1a2a1f 0%, #2c3e50 100%);
+    color: white;
+    padding: 48px 24px 40px;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 10px;
+  }
+  .hero h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .hero-sub {
+    font-size: 1rem;
+    opacity: 0.75;
+    margin-bottom: 28px;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat strong { display: block; font-size: 1.6rem; font-weight: 700; }
+  .hero-stat span { font-size: 0.78rem; opacity: 0.65; }
+
+  /* COUNTDOWN */
+  .countdown-bar {
+    background: rgba(255,255,255,0.08);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.85);
+  }
+  .countdown-bar strong { color: #7dd3a8; font-size: 1.1rem; }
+
+  /* MAIN */
+  .main { max-width: 900px; margin: 0 auto; padding: 32px 16px 0; }
+
+  /* ITINERARY TIMELINE */
+  .section-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .tl-item {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+    border-top: 3px solid var(--border);
+    font-size: 0.82rem;
+  }
+  .tl-item.flight { border-color: #6366f1; }
+  .tl-item.hotel { border-color: #0ea5e9; }
+  .tl-item.trek { border-color: #16a34a; }
+  .tl-item.car { border-color: #f59e0b; }
+  .tl-dates { font-size: 0.72rem; color: var(--muted); margin-bottom: 3px; }
+  .tl-title { font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .tl-detail { color: var(--muted); font-size: 0.78rem; }
+
+  /* CHECKLIST CARDS */
+  .checklist-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 560px) { .checklist-grid { grid-template-columns: 1fr; } }
+
+  .checklist-card {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+  }
+  .cc-header {
+    padding: 22px 22px 18px;
+    color: white;
+  }
+  .cc-trek { background: linear-gradient(135deg, #2c4a3e, #3d6b54); }
+  .cc-city { background: linear-gradient(135deg, #3a4a6e, #4a5e8a); }
+  .cc-header h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+  .cc-header p { font-size: 0.82rem; opacity: 0.8; }
+  .cc-body {
+    background: var(--card);
+    padding: 18px 22px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cc-progress-wrap { }
+  .cc-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .cc-progress-track {
+    height: 8px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .cc-progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .fill-trek { background: #3d6b54; }
+  .fill-city { background: #4a5e8a; }
+
+  .cc-modules { }
+  .cc-module-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid #f5f5f0;
+    font-size: 0.83rem;
+  }
+  .cc-module-row:last-child { border-bottom: none; }
+  .cc-module-name { color: var(--text); font-weight: 500; }
+  .cc-module-count { color: var(--muted); font-size: 0.78rem; }
+  .cc-module-done { color: #16a34a; font-size: 0.78rem; font-weight: 600; }
+
+  .open-btn {
+    display: block;
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    margin-top: 4px;
+    transition: opacity 0.2s;
+  }
+  .open-btn:hover { opacity: 0.88; }
+  .btn-trek { background: #2c4a3e; color: white; }
+  .btn-city { background: #3a4a6e; color: white; }
+
+  /* QUICK REF */
+  .quick-ref {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 32px;
+  }
+  .quick-ref h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 14px; }
+  .ref-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .ref-item {
+    background: #f9f9f7;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+  .ref-item label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .ref-item strong { color: var(--text); }
+
+  /* MANDATORY STRIP */
+  .mandatory-strip {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+  }
+  .mandatory-strip h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #92400e;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .m-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+  }
+  .m-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.84rem;
+    color: #78350f;
+  }
+  .m-dot { color: #f59e0b; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* PRINT */
+  @media print {
+    body { background: white; }
+    .hero { background: #1a2a1f !important; -webkit-print-color-adjust: exact; }
+    .open-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-eyebrow">Jonathan & Alan · Big Bear, CA</div>
+  <h1>🏔 Highlander 2026</h1>
+  <div class="hero-sub">Hercules Full Route · June 20–29, 2026 · PIT → LAX</div>
+  <div class="hero-stats">
+    <div class="hero-stat"><strong>~60</strong><span>Miles on trail</span></div>
+    <div class="hero-stat"><strong>9,800 ft</strong><span>Total ascent</span></div>
+    <div class="hero-stat"><strong>5</strong><span>Days hiking</span></div>
+    <div class="hero-stat"><strong>4</strong><span>Hotel nights</span></div>
+  </div>
+</div>
+<div class="countdown-bar">
+  Trek starts <strong id="countdown-display">calculating...</strong>
+</div>
+
+<div class="main">
+
+  <!-- ITINERARY -->
+  <div class="section-label">Trip Itinerary</div>
+  <div class="timeline">
+    <div class="tl-item flight">
+      <div class="tl-dates">Sat Jun 20</div>
+      <div class="tl-title">✈️ Fly PIT → LAX</div>
+      <div class="tl-detail">UA744 · Departs 5:55 PM<br>Arrives 8:07 PM · Conf: DG4QLW</div>
+    </div>
+    <div class="tl-item car">
+      <div class="tl-dates">Sat Jun 20</div>
+      <div class="tl-title">🚗 Car Pickup · LAX</div>
+      <div class="tl-detail">National · Conf: 2108681517<br>Full Size · Return Jun 29</div>
+    </div>
+    <div class="tl-item hotel">
+      <div class="tl-dates">Jun 20–22 · 2 nights</div>
+      <div class="tl-title">🏖 Residence Inn</div>
+      <div class="tl-detail">Marina del Rey<br>Conf: 70586962</div>
+    </div>
+    <div class="tl-item hotel">
+      <div class="tl-dates">Jun 22–23 · 1 night</div>
+      <div class="tl-title">🏔 Sessions Retreat</div>
+      <div class="tl-detail">Big Bear · Pre-Trek<br>Conf: 2097464310851</div>
+    </div>
+    <div class="tl-item trek">
+      <div class="tl-dates">Jun 23–27 · 5 days</div>
+      <div class="tl-title">🏕 Highlander Trek</div>
+      <div class="tl-detail">Hercules Full Route<br>Sleeping on trail</div>
+    </div>
+    <div class="tl-item hotel">
+      <div class="tl-dates">Jun 27–28 · 1 night</div>
+      <div class="tl-title">🎉 Postcard Cabins</div>
+      <div class="tl-detail">Big Bear · Post-Trek<br>Conf: 83779495</div>
+    </div>
+    <div class="tl-item hotel">
+      <div class="tl-dates">Jun 28–29 · 1 night</div>
+      <div class="tl-title">🌆 AC Hotel</div>
+      <div class="tl-detail">LA South Bay · Pre-flight<br>Conf: 6Q0U5XZSSV</div>
+    </div>
+    <div class="tl-item flight">
+      <div class="tl-dates">Mon Jun 29</div>
+      <div class="tl-title">✈️ Fly LAX → PIT</div>
+      <div class="tl-detail">UA2039 · Departs 9:00 AM<br>Arrives 4:51 PM · Conf: DG4QLW</div>
+    </div>
+  </div>
+
+  <!-- MANDATORY ITEMS -->
+  <div class="mandatory-strip">
+    <h3>⚠️ Mandatory Items — Do Not Forget</h3>
+    <div class="m-items">
+      <div class="m-item"><span class="m-dot">▸</span><span><strong>California Fire Permit</strong> — required to use propane stove; watch 3-min video online to obtain</span></div>
+      <div class="m-item"><span class="m-dot">▸</span><span><strong>4L Water Capacity</strong> — must start with full 4L at registration (3L bladder + 1L Nalgene)</span></div>
+      <div class="m-item"><span class="m-dot">▸</span><span><strong>Warm Layer</strong> — merino or equivalent; nights can drop to 50s°F at ~7,000 ft elevation</span></div>
+      <div class="m-item"><span class="m-dot">▸</span><span><strong>Gear Check</strong> — must attend in person; others cannot check in for you</span></div>
+    </div>
+  </div>
+
+  <!-- CHECKLISTS -->
+  <div class="section-label">Packing Checklists</div>
+  <div class="checklist-grid">
+
+    <div class="checklist-card">
+      <div class="cc-header cc-trek">
+        <h2>🏔 Trek Pack</h2>
+        <p>Gregory Zulu 65 · 10 modules · On trail Jun 23–27</p>
+      </div>
+      <div class="cc-body">
+        <div class="cc-progress-wrap">
+          <div class="cc-progress-label">
+            <span>Packed: <strong id="trek-packed">0</strong> / <strong id="trek-total">0</strong></span>
+            <span id="trek-pct">0%</span>
+          </div>
+          <div class="cc-progress-track">
+            <div class="cc-progress-fill fill-trek" id="trek-fill"></div>
+          </div>
+        </div>
+        <div class="cc-modules">
+          <div class="cc-module-row"><span class="cc-module-name">1 · Sleep System</span><span class="cc-module-count">6 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">2 · Clothing</span><span class="cc-module-count">4 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">3 · Electronics</span><span class="cc-module-count">5 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">4 · Active Layers</span><span class="cc-module-count">5 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">5 · First Aid & Foot</span><span class="cc-module-count">8 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">6 · Food (Daily)</span><span class="cc-module-count">7 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">7 · Cook Kit</span><span class="cc-module-count">8 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">8 · Water System</span><span class="cc-module-count">4 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">9 · Docs & Valuables</span><span class="cc-module-count">5 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">10 · Wet / External</span><span class="cc-module-count">5 items</span></div>
+        </div>
+        <a href="highlander_2026_pack_modules.html" class="open-btn btn-trek">Open Trek Pack Checklist →</a>
+      </div>
+    </div>
+
+    <div class="checklist-card">
+      <div class="cc-header cc-city">
+        <h2>🧳 City Bag</h2>
+        <p>Stays in rental car · 4 hotel nights · Marina del Rey → South Bay</p>
+      </div>
+      <div class="cc-body">
+        <div class="cc-progress-wrap">
+          <div class="cc-progress-label">
+            <span>Packed: <strong id="city-packed">0</strong> / <strong id="city-total">0</strong></span>
+            <span id="city-pct">0%</span>
+          </div>
+          <div class="cc-progress-track">
+            <div class="cc-progress-fill fill-city" id="city-fill"></div>
+          </div>
+        </div>
+        <div class="cc-modules">
+          <div class="cc-module-row"><span class="cc-module-name">Clothing</span><span class="cc-module-count">7 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">Footwear</span><span class="cc-module-count">2 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">Toiletries (Full-Size)</span><span class="cc-module-count">8 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">Electronics & Cables</span><span class="cc-module-count">5 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">Pre-Trek Admin</span><span class="cc-module-count">4 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">Post-Trek Recovery</span><span class="cc-module-count">5 items</span></div>
+          <div class="cc-module-row"><span class="cc-module-name">Car / Logistics</span><span class="cc-module-count">6 items</span></div>
+        </div>
+        <a href="highlander_2026_city_bag.html" class="open-btn btn-city">Open City Bag Checklist →</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- QUICK REF -->
+  <div class="section-label">Quick Reference</div>
+  <div class="quick-ref">
+    <div class="ref-grid">
+      <div class="ref-item"><label>Flight Out</label><strong>UA744 · PIT→LAX · Jun 20 5:55 PM</strong></div>
+      <div class="ref-item"><label>Flight Home</label><strong>UA2039 · LAX→PIT · Jun 29 9:00 AM</strong></div>
+      <div class="ref-item"><label>Rental Car</label><strong>National · Conf: 2108681517</strong></div>
+      <div class="ref-item"><label>Trek Start</label><strong>Jun 23 · Hercules Full Route</strong></div>
+      <div class="ref-item"><label>Total Ascent</label><strong>~9,800 ft over 5 days (~2,000/day)</strong></div>
+      <div class="ref-item"><label>Water Mandatory</label><strong>4L minimum at start (bladder + Nalgene)</strong></div>
+      <div class="ref-item"><label>Elevation</label><strong>~7,000 ft · Warm, dry · Nights 50s°F</strong></div>
+      <div class="ref-item"><label>Fire Permit</label><strong>Required before gear check — get online</strong></div>
+      <div class="ref-item"><label>Pack</label><strong>Gregory Zulu 65 · 3L bladder</strong></div>
+      <div class="ref-item"><label>Shoes</label><strong>Hoka Speedgoat 7 (confirmed fit)</strong></div>
+      <div class="ref-item"><label>Sleeping Bag</label><strong>NEMO Disco · 15°F · Tensor pad</strong></div>
+      <div class="ref-item"><label>Communication</label><strong>Garmin inReach (confirm plan active)</strong></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Countdown
+function updateCountdown() {
+  const trekStart = new Date('2026-06-23T00:00:00');
+  const now = new Date();
+  const diff = trekStart - now;
+  if (diff <= 0) {
+    document.getElementById('countdown-display').textContent = 'The trek has begun!';
+    return;
+  }
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  document.getElementById('countdown-display').textContent =
+    days > 0 ? `in ${days} day${days !== 1 ? 's' : ''} and ${hours} hour${hours !== 1 ? 's' : ''}` : `in ${hours} hour${hours !== 1 ? 's' : ''}`;
+}
+updateCountdown();
+setInterval(updateCountdown, 60000);
+
+// Pull progress from localStorage (shared with the individual checklists)
+function loadProgress() {
+  const trekChecked = JSON.parse(localStorage.getItem('highlander-checked') || '{}');
+  const cityChecked = JSON.parse(localStorage.getItem('highlander-city-checked') || '{}');
+
+  const trekTotal = 57;
+  const cityTotal = 37;
+  const trekCount = Object.keys(trekChecked).length;
+  const cityCount = Object.keys(cityChecked).length;
+
+  document.getElementById('trek-packed').textContent = trekCount;
+  document.getElementById('trek-total').textContent = trekTotal;
+  document.getElementById('trek-pct').textContent = Math.round((trekCount/trekTotal)*100) + '%';
+  document.getElementById('trek-fill').style.width = Math.round((trekCount/trekTotal)*100) + '%';
+
+  document.getElementById('city-packed').textContent = cityCount;
+  document.getElementById('city-total').textContent = cityTotal;
+  document.getElementById('city-pct').textContent = Math.round((cityCount/cityTotal)*100) + '%';
+  document.getElementById('city-fill').style.width = Math.round((cityCount/cityTotal)*100) + '%';
+}
+loadProgress();
+window.addEventListener('storage', loadProgress);
+</script>
+
+</body>
+</html>

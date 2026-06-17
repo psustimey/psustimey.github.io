@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Highlander 2026 — City Bag Checklist</title>
+<style>
+  :root {
+    --bg: #f5f5f0;
+    --card: #ffffff;
+    --primary: #3a4a6e;
+    --accent: #5a6e8a;
+    --light-accent: #e8ecf0;
+    --text: #2d2d2d;
+    --muted: #6b7280;
+    --border: #d1d5db;
+    --checked-bg: #f0f3f7;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --phase-marina: #2c5f8a;
+    --phase-bigbear: #2c6b4a;
+    --phase-postbear: #7a4a2c;
+    --phase-southbay: #5a2c7a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px 16px 48px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  header {
+    background: var(--primary);
+    color: white;
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+  }
+  header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.3px; }
+  header p { font-size: 0.9rem; opacity: 0.8; margin-top: 4px; }
+
+  .strategy-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--muted);
+    border-left: 4px solid var(--primary);
+  }
+  .strategy-card strong { color: var(--text); }
+
+  .phase-timeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .phase-card {
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: white;
+    font-size: 0.82rem;
+  }
+  .phase-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+  .phase-card p { opacity: 0.85; }
+  .p-marina { background: var(--phase-marina); }
+  .p-bigbear { background: var(--phase-bigbear); }
+  .p-postbear { background: var(--phase-postbear); }
+  .p-southbay { background: var(--phase-southbay); }
+
+  .progress-bar-wrap {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .progress-bar-track {
+    flex: 1; height: 10px;
+    background: var(--border);
+    border-radius: 99px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--accent);
+    border-radius: 99px; width: 0%;
+    transition: width 0.4s ease;
+  }
+  .progress-label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
+  .progress-count { font-weight: 600; color: var(--primary); }
+
+  .section {
+    background: var(--card);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+    color: white;
+  }
+  .section-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .section-title { font-weight: 600; font-size: 1rem; flex: 1; }
+  .section-meta { font-size: 0.78rem; opacity: 0.75; }
+  .section-chevron { font-size: 0.75rem; opacity: 0.7; transition: transform 0.2s; }
+  .section-header.collapsed .section-chevron { transform: rotate(-90deg); }
+  .section-body { padding: 4px 0; }
+  .section-body.hidden { display: none; }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 20px;
+    border-bottom: 1px solid #f5f5f0;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: #fafaf8; }
+  .item.checked { background: var(--checked-bg); }
+  .item.checked .item-text { color: var(--muted); text-decoration: line-through; }
+  .checkbox {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; margin-top: 1px;
+  }
+  .item.checked .checkbox { background: var(--accent); border-color: var(--accent); }
+  .checkmark { color: white; font-size: 0.75rem; display: none; }
+  .item.checked .checkmark { display: block; }
+  .item-text { font-size: 0.9rem; line-height: 1.4; }
+  .item-note { font-size: 0.78rem; color: var(--muted); display: block; margin-top: 2px; }
+
+  .phase-badge {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-left: 6px;
+    vertical-align: middle;
+    color: white;
+  }
+  .pb-marina { background: var(--phase-marina); }
+  .pb-bigbear { background: var(--phase-bigbear); }
+  .pb-postbear { background: var(--phase-postbear); }
+  .pb-southbay { background: var(--phase-southbay); }
+  .pb-all { background: var(--muted); }
+
+  .weight-tip {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: #78350f;
+    margin: 12px 20px;
+  }
+
+  .print-btn {
+    display: block; width: 100%;
+    padding: 14px;
+    background: var(--primary); color: white;
+    border: none; border-radius: 10px;
+    font-size: 1rem; font-weight: 600;
+    cursor: pointer; margin-top: 8px;
+    transition: background 0.2s;
+  }
+  .print-btn:hover { background: var(--accent); }
+  .reset-btn {
+    display: block; width: 100%;
+    padding: 10px;
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 10px;
+    font-size: 0.88rem; cursor: pointer; margin-top: 10px;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+  @media print {
+    body { background: white; padding: 0; }
+    header { border-radius: 0; }
+    .print-btn, .reset-btn, .progress-bar-wrap { display: none; }
+    .section { box-shadow: none; border: 1px solid var(--border); }
+    .section-body.hidden { display: block !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧳 Highlander 2026 — City Bag</h1>
+  <p>Stays in the rental car during the trek · Marina del Rey → Big Bear → South Bay</p>
+</header>
+
+<div class="strategy-card">
+  <strong>Two-bag strategy:</strong> The Gregory Zulu 65 (trek pack) goes on trail — this city bag stays in the car trunk the entire time you're hiking. Pack it so everything you need for 4 hotel nights is self-contained and you never need to dig into your trek pack for a city item.
+</div>
+
+<div class="phase-timeline">
+  <div class="phase-card p-marina">
+    <h4>🏖 Marina del Rey</h4>
+    <p>Jun 20–22 · Residence Inn · 2 nights · Arrival city days</p>
+  </div>
+  <div class="phase-card p-bigbear">
+    <h4>🏔 Big Bear Pre-Trek</h4>
+    <p>Jun 22–23 · Sessions Retreat · 1 night · Gear check day</p>
+  </div>
+  <div class="phase-card p-postbear">
+    <h4>🎉 Post-Trek Big Bear</h4>
+    <p>Jun 27–28 · Postcard Cabins · 1 night · Celebration night</p>
+  </div>
+  <div class="phase-card p-southbay">
+    <h4>✈️ LA South Bay</h4>
+    <p>Jun 28–29 · AC Hotel · 1 night · Pre-flight</p>
+  </div>
+</div>
+
+<div class="progress-bar-wrap">
+  <span class="progress-label">Packed: <span class="progress-count" id="packed-count">0</span> / <span id="total-items">0</span></span>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill"></div></div>
+  <span class="progress-label" id="progress-pct">0%</span>
+</div>
+
+<div id="sections-container"></div>
+
+<button class="print-btn" onclick="window.print()">🖨 Print Checklist</button>
+<button class="reset-btn" onclick="resetAll()">↺ Reset All Checks</button>
+
+<script>
+const sections = [
+  {
+    title: "Clothing",
+    icon: "👕",
+    color: "#3a4a6e",
+    tip: "Target: 2 casual outfits total. You'll want one clean outfit for arrival/city days and one decent set for the post-trek celebration night.",
+    items: [
+      { text: "Casual t-shirt or light shirt (×2)", note: "Marina del Rey + post-trek; no need for more", phase: "all" },
+      { text: "Casual pants or shorts (×1–2)", note: "Comfortable for walking around Marina del Rey and Big Bear town", phase: "all" },
+      { text: "Nicer layer / button-down", note: "Post-trek Postcard Cabins celebration night — you'll want to feel human again", phase: "postbear" },
+      { text: "Underwear (×3)", note: "Arrival days + post-trek + pre-flight", phase: "all" },
+      { text: "Casual socks (×2 pairs)", note: "City use only — trail socks are already in the Zulu", phase: "all" },
+      { text: "Light sleepwear / loungewear", note: "Optional — hotel nights feel nicer with something dedicated", phase: "all" },
+      { text: "Light jacket or hoodie", note: "Marina del Rey evenings can be cool; also useful post-trek", phase: "marina" },
+    ]
+  },
+  {
+    title: "Footwear",
+    icon: "👟",
+    color: "#2c5f8a",
+    tip: "Your Hokas go on trail. Pack one alternative for hotel evenings and city walking so your feet get a break.",
+    items: [
+      { text: "Casual shoes / sneakers", note: "City walking — Marina del Rey, Big Bear town, South Bay", phase: "all" },
+      { text: "Flip flops or sandals", note: "Hotel room, pool, post-trek recovery — light enough to tuck in a corner", phase: "all" },
+    ]
+  },
+  {
+    title: "Toiletries (Full-Size)",
+    icon: "🧴",
+    color: "#5a3a6e",
+    tip: "Your trail toiletry kit is already in the Zulu. These are the full-size comforts you'll want for hotel nights — showers, mirrors, outlets.",
+    items: [
+      { text: "Shampoo + conditioner", note: "Full-size or travel size — hotels may provide but don't count on it", phase: "all" },
+      { text: "Body wash / soap", note: "", phase: "all" },
+      { text: "Deodorant", note: "Full-size for city days; travel size already in trail kit", phase: "all" },
+      { text: "Toothbrush + toothpaste", note: "Separate from trail kit so you're not digging into the Zulu at hotels", phase: "all" },
+      { text: "Razor / shaving kit", note: "Optional — you may be rocking post-trek scruff intentionally", phase: "all" },
+      { text: "Face wash / moisturizer", note: "Post-trek skin recovery after 5 days of sun and wind", phase: "postbear" },
+      { text: "Hair styling items", note: "If needed — hotel dryer usually available", phase: "all" },
+      { text: "Nail clippers", note: "Pre-trek toenail check is important; also useful post-trek", phase: "bigbear" },
+    ]
+  },
+  {
+    title: "Electronics & Cables (City)",
+    icon: "🔌",
+    color: "#2c6b4a",
+    tip: "Trail electronics stay in the Zulu. These are the hotel-night charging items — full-size cables, laptop if needed, camera.",
+    items: [
+      { text: "Wall charger / USB hub", note: "For charging everything overnight at hotels", phase: "all" },
+      { text: "Laptop / iPad (optional)", note: "Marina del Rey and South Bay nights if you want to decompress or catch up", phase: "marina" },
+      { text: "Earbuds / headphones", note: "Flight + city use", phase: "all" },
+      { text: "Camera (if bringing a dedicated one)", note: "Keep in city bag until just before trek if you're not taking it on trail", phase: "all" },
+      { text: "Flight documents / passport backup", note: "UA744 PIT→LAX Jun 20 · UA2039 LAX→PIT Jun 29 · Conf: DG4QLW", phase: "all" },
+    ]
+  },
+  {
+    title: "Pre-Trek Admin (Big Bear)",
+    icon: "📋",
+    color: "#7a4a2c",
+    tip: "Items needed specifically for gear check and registration at the trek start — June 23 at Sessions Retreat and the start area.",
+    items: [
+      { text: "California fire permit", note: "MANDATORY — must have before registration/gear check", phase: "bigbear" },
+      { text: "Highlander registration confirmation", note: "Printed or screenshot on phone", phase: "bigbear" },
+      { text: "Mandatory gear checklist printout", note: "Cross-reference at gear check; know what inspectors will look for", phase: "bigbear" },
+      { text: "Emergency contact info written down", note: "Separate from phone in case battery is dead", phase: "bigbear" },
+    ]
+  },
+  {
+    title: "Post-Trek Recovery",
+    icon: "🛁",
+    color: "#5a2c7a",
+    tip: "After 5 days on trail you'll want these immediately at Postcard Cabins. Keep them accessible in the city bag — top of the duffel.",
+    items: [
+      { text: "Clean towel (small)", note: "Hotels provide towels but having your own for initial rinse is nice", phase: "postbear" },
+      { text: "Epsom salts (small bag)", note: "Foot soak for blister recovery — especially important given current foot issues", phase: "postbear" },
+      { text: "Extra blister / wound care", note: "Post-trek wound assessment — Compeed, Leukotape, bandages", phase: "postbear" },
+      { text: "Ibuprofen / pain relief (full supply)", note: "City bag version for hotel nights; trail version already in Zulu first aid kit", phase: "postbear" },
+      { text: "Comfortable clothes ready on top of bag", note: "First thing you'll want after dropping the pack", phase: "postbear" },
+    ]
+  },
+  {
+    title: "Car / Logistics",
+    icon: "🚗",
+    color: "#4a6e3a",
+    tip: "Items that live in the rental car throughout the trip — not packed in the duffel but need to be accounted for.",
+    items: [
+      { text: "National Car Rental confirmation", note: "Conf: 2108681517 · Emerald Club · LAX pickup Jun 20, return Jun 29", phase: "all" },
+      { text: "Portable car charger / USB", note: "Charging on the ~2hr drive to Big Bear Jun 22", phase: "all" },
+      { text: "Snacks for drive days", note: "Marina del Rey → Big Bear Jun 22 + Big Bear → South Bay Jun 28", phase: "all" },
+      { text: "Small cooler or bag for post-trek food", note: "Optional — nice for recovery snacks after finishing the trail", phase: "postbear" },
+      { text: "Plastic bag for dirty trail clothes/shoes", note: "You'll want to bag the Hokas and hiking clothes immediately post-trek before they go in the car", phase: "postbear" },
+      { text: "Paper maps or offline nav downloaded", note: "Big Bear area cell service can be spotty", phase: "bigbear" },
+    ]
+  },
+];
+
+const container = document.getElementById('sections-container');
+let totalItems = 0;
+
+sections.forEach((sec, si) => {
+  totalItems += sec.items.length;
+  const div = document.createElement('div');
+  div.className = 'section';
+
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  header.style.background = sec.color;
+  header.innerHTML = `
+    <div class="section-icon">${sec.icon}</div>
+    <div class="section-title">${sec.title}</div>
+    <div class="section-meta">${sec.items.length} items</div>
+    <span class="section-chevron">▼</span>
+  `;
+
+  const body = document.createElement('div');
+  body.className = 'section-body';
+
+  if (sec.tip) {
+    const tip = document.createElement('div');
+    tip.className = 'weight-tip';
+    tip.textContent = sec.tip;
+    body.appendChild(tip);
+  }
+
+  const phaseLabels = {
+    marina: ['Marina del Rey', 'pb-marina'],
+    bigbear: ['Pre-Trek Big Bear', 'pb-bigbear'],
+    postbear: ['Post-Trek', 'pb-postbear'],
+    southbay: ['South Bay', 'pb-southbay'],
+    all: ['All Phases', 'pb-all']
+  };
+
+  sec.items.forEach((item, ii) => {
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.dataset.id = `city-${si}-${ii}`;
+    const [label, cls] = phaseLabels[item.phase] || ['', ''];
+    const badge = label ? `<span class="phase-badge ${cls}">${label}</span>` : '';
+    row.innerHTML = `
+      <div class="checkbox"><span class="checkmark">✓</span></div>
+      <div class="item-text">
+        ${item.text}${badge}
+        ${item.note ? `<span class="item-note">${item.note}</span>` : ''}
+      </div>
+    `;
+    row.addEventListener('click', () => toggleItem(row));
+    body.appendChild(row);
+  });
+
+  header.addEventListener('click', () => {
+    body.classList.toggle('hidden');
+    header.classList.toggle('collapsed');
+  });
+
+  div.appendChild(header);
+  div.appendChild(body);
+  container.appendChild(div);
+});
+
+document.getElementById('total-items').textContent = totalItems;
+updateProgress();
+
+function toggleItem(row) {
+  row.classList.toggle('checked');
+  const id = row.dataset.id;
+  const checked = JSON.parse(localStorage.getItem('highlander-city-checked') || '{}');
+  if (row.classList.contains('checked')) { checked[id] = true; }
+  else { delete checked[id]; }
+  localStorage.setItem('highlander-city-checked', JSON.stringify(checked));
+  updateProgress();
+}
+
+function updateProgress() {
+  const checked = JSON.parse(localStorage.getItem('highlander-city-checked') || '{}');
+  const count = Object.keys(checked).length;
+  document.getElementById('packed-count').textContent = count;
+  const pct = Math.round((count / totalItems) * 100);
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function resetAll() {
+  if (!confirm('Reset all checked items?')) return;
+  localStorage.removeItem('highlander-city-checked');
+  document.querySelectorAll('.item.checked').forEach(i => i.classList.remove('checked'));
+  updateProgress();
+}
+
+(function restoreState() {
+  const checked = JSON.parse(localStorage.getItem('highlander-city-checked') || '{}');
+  Object.keys(checked).forEach(id => {
+    const row = document.querySelector(`[data-id="${id}"]`);
+    if (row) row.classList.add('checked');
+  });
+  updateProgress();
+})();
+</script>
+</body>
+</html>
