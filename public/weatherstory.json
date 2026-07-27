@@ -4,7 +4,7 @@
   "description": "Widget configuration and manifest for Weather.gov WeatherStory images.",
   "page_url": "https://www.weather.gov/ctp/weatherstory",
   "image_regex": "https://www.weather.gov/images/ctp/WxStory/WeatherStory(?:[0-9])?\\.png",
-  "poll_interval_seconds": 60,
+  "poll_interval_seconds": 600,
   "manifest_generated_by": "scripts/weatherstory_monitor.py",
-  "display_duration_seconds": 10
+  "display_duration_seconds": 30
 }
