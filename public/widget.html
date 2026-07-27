@@ -2,9 +2,87 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Weatherstory Widget</title>
+  <title>WeatherStory Widget</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    html,body{height:100%;margin:0}
+    #weather-widget{display:flex;align-items:center;justify-content:center;height:100%;background:#000}
+    #weatherImg{max-width:100%;max-height:100%;display:block}
+    #error{color:#f88;font-family:monospace}
+  </style>
 </head>
 <body>
-  <div id="weather-widget">Weatherstory widget placeholder</div>
+  <div id="weather-widget">
+    <img id="weatherImg" alt="WeatherStory" src="" />
+  </div>
+  <script>
+    (function(){
+      const CONFIG_PATH = './weatherstory.json';
+      const MANIFEST_PATH = './weatherstory-manifest.json';
+      const DEFAULT_POLL_INTERVAL_MS = 60 * 1000;
+
+      async function fetchJson(path){
+        const res = await fetch(path, {cache:'no-store'});
+        if(!res.ok) throw new Error('Failed to fetch ' + path + ': ' + res.status);
+        return res.json();
+      }
+
+      async function loadConfig(){
+        try{
+          return await fetchJson(CONFIG_PATH);
+        }catch(err){
+          console.warn('Config load failed, using defaults', err);
+          return { poll_interval_seconds: 60 };
+        }
+      }
+
+      async function loadManifest(){
+        try{
+          return await fetchJson(MANIFEST_PATH);
+        }catch(err){
+          // manifest may not exist yet
+          console.warn('Manifest load failed', err);
+          return null;
+        }
+      }
+
+      let currentUrl = null;
+      let pollMs = DEFAULT_POLL_INTERVAL_MS;
+
+      async function updateOnce(){
+        const manifest = await loadManifest();
+        if(manifest && Array.isArray(manifest.urls) && manifest.urls.length){
+          const url = manifest.urls[0];
+          if(url && url !== currentUrl){
+            currentUrl = url;
+            document.getElementById('weatherImg').src = url + '?_=' + Date.now();
+          }
+          return true;
+        }
+        return false;
+      }
+
+      async function loop(){
+        const cfg = await loadConfig();
+        if(cfg && Number.isFinite(cfg.poll_interval_seconds)){
+          pollMs = Math.max(5000, cfg.poll_interval_seconds * 1000);
+        }
+
+        const ok = await updateOnce();
+        if(!ok){
+          // If manifest missing, try a best-effort fallback: fetch the page and scrape image URL
+          try{
+            const res = await fetch('./widget-fallback.html', {cache:'no-store'});
+            // fallback intentionally left minimal; rely on server-side manifest instead
+          }catch(_){/* ignore */}
+        }
+
+        setTimeout(loop, pollMs);
+      }
+
+      // Start
+      loop();
+    })();
+  </script>
 </body>
 </html>
