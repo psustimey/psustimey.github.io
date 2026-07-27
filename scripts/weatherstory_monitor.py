@@ -43,7 +43,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--notify-cmd', help='Shell command to run when an update is detected. Use {message} placeholder for the notification text.')
     parser.add_argument('--dry-run', action='store_true', help='Parse and compare image state without sending notifications.')
     parser.add_argument('--verbose', action='store_true', help='Print extra debug information.')
-    parser.add_argument('--manifest-out', help='Path to write a JSON manifest of the current WeatherStory image URLs.')
+    parser.add_argument('--manifest-out', default='public/weatherstory.json', help='Path to write a JSON manifest of the current WeatherStory image URLs.')
     return parser.parse_args()
 
 

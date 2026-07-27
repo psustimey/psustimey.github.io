@@ -2,9 +2,59 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Weatherstory Widget</title>
+  <title>WeatherStory Widget</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    html,body{height:100%;margin:0}
+    #weather-widget{display:flex;align-items:center;justify-content:center;height:100%;background:#000}
+    #weatherImg{max-width:100%;max-height:100%;display:block}
+    #error{color:#f88;font-family:monospace}
+  </style>
 </head>
 <body>
-  <div id="weather-widget">Weatherstory widget placeholder</div>
+  <div id="weather-widget">
+    <img id="weatherImg" alt="WeatherStory" src="" />
+  </div>
+  <script>
+    (function(){
+      const PAGE_URL = "https://www.weather.gov/ctp/weatherstory";
+      const IMAGE_RE = /https?:\/\/www\.weather\.gov\/images\/ctp\/WxStory\/WeatherStory(?:[0-9])?\.png/ig;
+      const POLL_INTERVAL_MS = 60 * 1000; // 1 minute
+
+      async function fetchPageText(url){
+        const res = await fetch(url, {cache:'no-store', mode: 'cors'});
+        if(!res.ok) throw new Error('Failed to fetch page: ' + res.status);
+        return res.text();
+      }
+
+      async function getCurrentWeatherStoryUrl(){
+        const html = await fetchPageText(PAGE_URL);
+        const matches = [...html.matchAll(IMAGE_RE)].map(m => m[0]);
+        if(matches.length === 0) throw new Error('No WeatherStory image found in page HTML');
+        // prefer the first match (page usually has a single live image)
+        return matches[0];
+      }
+
+      let current = null;
+      async function update(){
+        try{
+          const url = await getCurrentWeatherStoryUrl();
+          if(url !== current){
+            current = url;
+            const img = document.getElementById('weatherImg');
+            // cache-busting query so clients always fetch the latest bytes
+            img.src = url + '?_=' + Date.now();
+          }
+        }catch(err){
+          console.error('WeatherStory widget error', err);
+        }finally{
+          setTimeout(update, POLL_INTERVAL_MS);
+        }
+      }
+
+      // Start
+      update();
+    })();
+  </script>
 </body>
 </html>
