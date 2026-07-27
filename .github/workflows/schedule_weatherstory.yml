@@ -74,7 +74,6 @@ jobs:
           if command -v base64 >/dev/null 2>&1; then
             # GNU coreutils base64 supports -w; fallback will strip newlines
             CONTENT=$(base64 "$FILEPATH" 2>/dev/null | tr -d '\n')
->>>>>>> dc07d5e (Replace heredoc/python blocks with jq-based payload builder; remove YAML-parsing fragile blocks)
           else
             CONTENT=$(python3 -c "import base64,sys;print(base64.b64encode(open('$FILEPATH','rb').read()).decode())")
           fi
