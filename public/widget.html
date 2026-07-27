@@ -54,9 +54,15 @@
       let displayTimer = null;
       let manifestTimer = null;
 
-      function showImage(url){
+      function showImage(entry){
         const img = document.getElementById('weatherImg');
-        img.src = url + '?_=' + Date.now();
+        if(!entry){ img.src = ''; return; }
+        const url = (typeof entry === 'string') ? entry : entry.url;
+        const contentHash = (typeof entry === 'string') ? null : (entry.content_hash || entry.contentHash || null);
+        const sep = url.includes('?') ? '&' : '?';
+        // Prefer per-image content hash for cache key; fall back to manifest updatedAt so images stay cached between rotations
+        const cacheKey = contentHash || (manifestUpdatedAt ? encodeURIComponent(manifestUpdatedAt) : 'init');
+        img.src = url + sep + 'v=' + cacheKey;
       }
 
       function startDisplayLoop(){

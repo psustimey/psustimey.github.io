@@ -215,11 +215,29 @@ def run_notify_cmd(command_template: str, message: str, verbose: bool = False) -
     subprocess.run(command, shell=True, check=False)
 
 
-def write_manifest(path: Path, urls: List[str]) -> None:
+from typing import Union
+
+def write_manifest(path: Path, images: List[Union[str, Dict[str, Any]]]) -> None:
+    """Write a manifest containing updatedAt and a list of image entries.
+
+    Each entry is an object with at least 'url' and optional 'content_hash', 'etag', 'last_modified'.
+    The function accepts either a list of URL strings or a list of dicts produced by build_image_state().
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
+    entries: List[Dict[str, Optional[str]]] = []
+    for item in images:
+        if isinstance(item, str):
+            entries.append({'url': item, 'content_hash': None, 'etag': None, 'last_modified': None})
+        else:
+            entries.append({
+                'url': item.get('url'),
+                'content_hash': item.get('content_hash'),
+                'etag': item.get('etag'),
+                'last_modified': item.get('last_modified'),
+            })
     manifest = {
         'updatedAt': datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
-        'urls': urls,
+        'urls': entries,
     }
     with path.open('w', encoding='utf-8') as fh:
         json.dump(manifest, fh, indent=2)
@@ -240,6 +258,7 @@ def main() -> int:
         print('Found URLs:', urls)
 
     if args.manifest_out:
+        # write a preliminary manifest with URLs so the widget can load quickly
         write_manifest(Path(args.manifest_out), urls)
 
     if not urls:
@@ -251,6 +270,10 @@ def main() -> int:
     except (HTTPError, URLError) as exc:
         print(f'Error fetching image metadata: {exc}', file=sys.stderr)
         return 1
+
+    # Overwrite the manifest with richer per-image metadata (content_hash, etag, last_modified)
+    if args.manifest_out:
+        write_manifest(Path(args.manifest_out), new_state)
 
     previous_state = load_state(state_path).get('images', [])
     changes = compare_state(previous_state, new_state)

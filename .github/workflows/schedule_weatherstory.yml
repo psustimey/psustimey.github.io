@@ -66,3 +66,24 @@ jobs:
 
           curl -s -X PUT -H "Authorization: token $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/payload.json "$API"
           echo "Upload step completed"
+          REMOTE_JSON=$(curl -s -H "Authorization: token $TOKEN" "$API?ref=$BRANCH" || true)
+          SHA=$(echo "$REMOTE_JSON" | jq -r '.sha // ""' 2>/dev/null || true)
+
+          # Build payload and upload via API using jq to avoid tricky escaping
+          # get base64 content (portable across runners)
+          if command -v base64 >/dev/null 2>&1; then
+            # GNU coreutils base64 supports -w; fallback will strip newlines
+            CONTENT=$(base64 "$FILEPATH" 2>/dev/null | tr -d '\n')
+          else
+            CONTENT=$(python3 -c "import base64,sys;print(base64.b64encode(open('$FILEPATH','rb').read()).decode())")
+          fi
+
+          if [ -n "$SHA" ]; then
+            jq -n --arg m "Update weatherstory manifest [skip ci]" --arg b "$BRANCH" --arg c "$CONTENT" --arg s "$SHA" '{message:$m, branch:$b, content:$c, sha:$s}' > /tmp/payload.json
+          else
+            jq -n --arg m "Update weatherstory manifest [skip ci]" --arg b "$BRANCH" --arg c "$CONTENT" '{message:$m, branch:$b, content:$c}' > /tmp/payload.json
+          fi
+
+          curl -s -X PUT -H "Authorization: token $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/payload.json "$API"
+          echo "Upload step completed"
+
