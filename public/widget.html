@@ -19,7 +19,8 @@
     (function(){
       const CONFIG_PATH = './weatherstory.json';
       const MANIFEST_PATH = './weatherstory-manifest.json';
-      const DEFAULT_POLL_INTERVAL_MS = 60 * 1000;
+      const DEFAULT_POLL_INTERVAL_MS = 60 * 1000; // how often to refresh manifest
+      const DEFAULT_DISPLAY_MS = 10 * 1000; // how long to show each image
 
       async function fetchJson(path){
         const res = await fetch(path, {cache:'no-store'});
@@ -32,7 +33,7 @@
           return await fetchJson(CONFIG_PATH);
         }catch(err){
           console.warn('Config load failed, using defaults', err);
-          return { poll_interval_seconds: 60 };
+          return { poll_interval_seconds: 60, display_duration_seconds: 10 };
         }
       }
 
@@ -40,48 +41,78 @@
         try{
           return await fetchJson(MANIFEST_PATH);
         }catch(err){
-          // manifest may not exist yet
           console.warn('Manifest load failed', err);
           return null;
         }
       }
 
-      let currentUrl = null;
+      let urls = [];
+      let manifestUpdatedAt = null;
+      let currentIndex = 0;
+      let displayMs = DEFAULT_DISPLAY_MS;
       let pollMs = DEFAULT_POLL_INTERVAL_MS;
+      let displayTimer = null;
+      let manifestTimer = null;
 
-      async function updateOnce(){
-        const manifest = await loadManifest();
-        if(manifest && Array.isArray(manifest.urls) && manifest.urls.length){
-          const url = manifest.urls[0];
-          if(url && url !== currentUrl){
-            currentUrl = url;
-            document.getElementById('weatherImg').src = url + '?_=' + Date.now();
-          }
-          return true;
-        }
-        return false;
+      function showImage(url){
+        const img = document.getElementById('weatherImg');
+        img.src = url + '?_=' + Date.now();
       }
 
-      async function loop(){
+      function startDisplayLoop(){
+        if(displayTimer) clearInterval(displayTimer);
+        if(!urls || urls.length === 0) return;
+        // Ensure currentIndex is in range
+        currentIndex = currentIndex % urls.length;
+        showImage(urls[currentIndex]);
+        displayTimer = setInterval(() => {
+          currentIndex = (currentIndex + 1) % urls.length;
+          showImage(urls[currentIndex]);
+        }, displayMs);
+      }
+
+      async function refreshManifest(){
+        try{
+          const m = await loadManifest();
+          if(!m) return;
+          // Update display and poll intervals if provided
+          if(m.updatedAt && m.updatedAt !== manifestUpdatedAt){
+            manifestUpdatedAt = m.updatedAt;
+            urls = Array.isArray(m.urls) ? m.urls.slice() : [];
+            currentIndex = 0;
+            startDisplayLoop();
+            console.info('Manifest updated; cycling', urls.length, 'urls');
+          } else if (!manifestUpdatedAt && Array.isArray(m.urls) && m.urls.length){
+            // initial load
+            manifestUpdatedAt = m.updatedAt || new Date().toISOString();
+            urls = m.urls.slice();
+            currentIndex = 0;
+            startDisplayLoop();
+          }
+        }catch(err){
+          console.warn('refreshManifest error', err);
+        }
+      }
+
+      async function start(){
         const cfg = await loadConfig();
         if(cfg && Number.isFinite(cfg.poll_interval_seconds)){
           pollMs = Math.max(5000, cfg.poll_interval_seconds * 1000);
         }
-
-        const ok = await updateOnce();
-        if(!ok){
-          // If manifest missing, try a best-effort fallback: fetch the page and scrape image URL
-          try{
-            const res = await fetch('./widget-fallback.html', {cache:'no-store'});
-            // fallback intentionally left minimal; rely on server-side manifest instead
-          }catch(_){/* ignore */}
+        if(cfg && Number.isFinite(cfg.display_duration_seconds)){
+          displayMs = Math.max(1000, cfg.display_duration_seconds * 1000);
         }
 
-        setTimeout(loop, pollMs);
+        await refreshManifest();
+        // poll manifest periodically
+        manifestTimer = setInterval(refreshManifest, pollMs);
       }
 
-      // Start
-      loop();
+      // Start widget
+      start();
+
+      // Expose for debugging
+      window.__weatherstory_widget = { start, refreshManifest, startDisplayLoop };
     })();
   </script>
 </body>
