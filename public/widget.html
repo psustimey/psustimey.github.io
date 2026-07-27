@@ -56,7 +56,10 @@
 
       function showImage(url){
         const img = document.getElementById('weatherImg');
-        img.src = url + '?_=' + Date.now();
+        if(!url){ img.src = ''; return; }
+        const sep = url.includes('?') ? '&' : '?';
+        const cacheKey = manifestUpdatedAt ? encodeURIComponent(manifestUpdatedAt) : 'init';
+        img.src = url + sep + 'v=' + cacheKey;
       }
 
       function startDisplayLoop(){
