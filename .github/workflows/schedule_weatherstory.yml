@@ -46,31 +46,29 @@ jobs:
           fi
           API="https://api.github.com/repos/$REPO/contents/$FILEPATH"
           # Read remote file metadata to get sha if it exists
-          REMOTE_JSON=$(curl -s -H "Authorization: Bearer $TOKEN" "$API?ref=$BRANCH" || true)
-          SHA=$(python3 - <<PY
+          REMOTE_JSON=$(curl -s -H "Authorization: token $TOKEN" "$API?ref=$BRANCH" || true)
+          SHA=$(echo "$REMOTE_JSON" | python3 - <<'PY'
 import sys, json
+s = sys.stdin.read()
 try:
-  j = json.load(sys.stdin)
-  print(j.get('sha') or '')
+    j = json.loads(s) if s.strip() else {}
+    print(j.get('sha') or '')
 except Exception:
-  print('')
+    print('')
 PY
-<<<"$REMOTE_JSON")
+) || true
 
           # Build payload and upload via API
-          python3 - <<PY | curl -s -X PUT -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d @- "$API"
-import json,base64,sys
-p='$FILEPATH'
-with open(p,'rb') as f:
-    content = base64.b64encode(f.read()).decode()
-payload = {
-  'message': 'Update weatherstory manifest [skip ci]',
-  'branch': '$BRANCH',
-  'content': content
-}
-sha = '$SHA'
-if sha:
-    payload['sha'] = sha
-print(json.dumps(payload))
+          CONTENT=$(python3 - <<'PY'
+import base64,sys
+print(base64.b64encode(open("$FILEPATH","rb").read()).decode())
 PY
+)
+          if [ -n "$SHA" ]; then
+            PAYLOAD=$(printf '%s' "{\"message\": \"Update weatherstory manifest [skip ci]\", \"branch\": \"$BRANCH\", \"content\": \"$CONTENT\", \"sha\": \"$SHA\"}")
+          else
+            PAYLOAD=$(printf '%s' "{\"message\": \"Update weatherstory manifest [skip ci]\", \"branch\": \"$BRANCH\", \"content\": \"$CONTENT\"}")
+          fi
+          curl -s -X PUT -H "Authorization: token $TOKEN" -H "Content-Type: application/json" -d "$PAYLOAD" "$API"
           echo "Upload step completed"
+
