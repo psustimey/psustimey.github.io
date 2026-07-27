@@ -32,26 +32,45 @@ jobs:
         run: |
           python scripts/weatherstory_monitor.py --manifest-out public/weatherstory-manifest.json
 
-      - name: Commit manifest if changed
+      - name: Upload manifest via GitHub API
+        env:
+          REPO: ${{ github.repository }}
+          BRANCH: main
+          FILEPATH: public/weatherstory-manifest.json
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- public/weatherstory-manifest.json; then
-            git add public/weatherstory-manifest.json
-            git commit -m "Update weatherstory manifest [skip ci]" || true
-            # Ensure we have latest remote main and rebase local change onto it to avoid non-fast-forward
-            git fetch origin main --quiet
-            if git merge-base --is-ancestor origin/main HEAD; then
-              git push origin HEAD:main || echo "Push rejected (branch protection?)"
-            else
-              # Try to rebase local commit(s) onto origin/main; if this fails abort to avoid conflicts in runner
-              if git rebase origin/main; then
-                git push origin HEAD:main || echo "Push rejected after rebase (branch protection?)"
-              else
-                echo "Rebase failed; aborting push to avoid conflicts"
-                git rebase --abort || true
-              fi
-            fi
-          else
-            echo "No manifest changes to commit"
+          set -euo pipefail
+          echo "Preparing to upload manifest $FILEPATH to $REPO on branch $BRANCH"
+          if [ ! -f "$FILEPATH" ]; then
+            echo "Manifest file not found; skipping upload"; exit 0
           fi
+          API="https://api.github.com/repos/$REPO/contents/$FILEPATH"
+          # Read remote file metadata to get sha if it exists
+          REMOTE_JSON=$(curl -s -H "Authorization: Bearer $TOKEN" "$API?ref=$BRANCH" || true)
+          SHA=$(python3 - <<PY
+import sys, json
+try:
+  j = json.load(sys.stdin)
+  print(j.get('sha') or '')
+except Exception:
+  print('')
+PY
+<<<"$REMOTE_JSON")
+
+          # Build payload and upload via API
+          python3 - <<PY | curl -s -X PUT -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d @- "$API"
+import json,base64,sys
+p='$FILEPATH'
+with open(p,'rb') as f:
+    content = base64.b64encode(f.read()).decode()
+payload = {
+  'message': 'Update weatherstory manifest [skip ci]',
+  'branch': '$BRANCH',
+  'content': content
+}
+sha = '$SHA'
+if sha:
+    payload['sha'] = sha
+print(json.dumps(payload))
+PY
+          echo "Upload step completed"
