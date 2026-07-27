@@ -17,43 +17,71 @@
   </div>
   <script>
     (function(){
-      const PAGE_URL = "https://www.weather.gov/ctp/weatherstory";
-      const IMAGE_RE = /https?:\/\/www\.weather\.gov\/images\/ctp\/WxStory\/WeatherStory(?:[0-9])?\.png/ig;
-      const POLL_INTERVAL_MS = 60 * 1000; // 1 minute
+      const CONFIG_PATH = './weatherstory.json';
+      const MANIFEST_PATH = './weatherstory-manifest.json';
+      const DEFAULT_POLL_INTERVAL_MS = 60 * 1000;
 
-      async function fetchPageText(url){
-        const res = await fetch(url, {cache:'no-store', mode: 'cors'});
-        if(!res.ok) throw new Error('Failed to fetch page: ' + res.status);
-        return res.text();
+      async function fetchJson(path){
+        const res = await fetch(path, {cache:'no-store'});
+        if(!res.ok) throw new Error('Failed to fetch ' + path + ': ' + res.status);
+        return res.json();
       }
 
-      async function getCurrentWeatherStoryUrl(){
-        const html = await fetchPageText(PAGE_URL);
-        const matches = [...html.matchAll(IMAGE_RE)].map(m => m[0]);
-        if(matches.length === 0) throw new Error('No WeatherStory image found in page HTML');
-        // prefer the first match (page usually has a single live image)
-        return matches[0];
-      }
-
-      let current = null;
-      async function update(){
+      async function loadConfig(){
         try{
-          const url = await getCurrentWeatherStoryUrl();
-          if(url !== current){
-            current = url;
-            const img = document.getElementById('weatherImg');
-            // cache-busting query so clients always fetch the latest bytes
-            img.src = url + '?_=' + Date.now();
-          }
+          return await fetchJson(CONFIG_PATH);
         }catch(err){
-          console.error('WeatherStory widget error', err);
-        }finally{
-          setTimeout(update, POLL_INTERVAL_MS);
+          console.warn('Config load failed, using defaults', err);
+          return { poll_interval_seconds: 60 };
         }
       }
 
+      async function loadManifest(){
+        try{
+          return await fetchJson(MANIFEST_PATH);
+        }catch(err){
+          // manifest may not exist yet
+          console.warn('Manifest load failed', err);
+          return null;
+        }
+      }
+
+      let currentUrl = null;
+      let pollMs = DEFAULT_POLL_INTERVAL_MS;
+
+      async function updateOnce(){
+        const manifest = await loadManifest();
+        if(manifest && Array.isArray(manifest.urls) && manifest.urls.length){
+          const url = manifest.urls[0];
+          if(url && url !== currentUrl){
+            currentUrl = url;
+            document.getElementById('weatherImg').src = url + '?_=' + Date.now();
+          }
+          return true;
+        }
+        return false;
+      }
+
+      async function loop(){
+        const cfg = await loadConfig();
+        if(cfg && Number.isFinite(cfg.poll_interval_seconds)){
+          pollMs = Math.max(5000, cfg.poll_interval_seconds * 1000);
+        }
+
+        const ok = await updateOnce();
+        if(!ok){
+          // If manifest missing, try a best-effort fallback: fetch the page and scrape image URL
+          try{
+            const res = await fetch('./widget-fallback.html', {cache:'no-store'});
+            // fallback intentionally left minimal; rely on server-side manifest instead
+          }catch(_){/* ignore */}
+        }
+
+        setTimeout(loop, pollMs);
+      }
+
       // Start
-      update();
+      loop();
     })();
   </script>
 </body>
