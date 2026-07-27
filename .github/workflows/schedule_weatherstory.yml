@@ -46,16 +46,9 @@ jobs:
           fi
           API="https://api.github.com/repos/$REPO/contents/$FILEPATH"
           # Read remote file metadata to get sha if it exists
-          REMOTE_JSON=$(curl -s -H "Authorization: Bearer $TOKEN" "$API?ref=$BRANCH" || true)
-          SHA=$(python3 - <<PY
-import sys, json
-try:
-  j = json.load(sys.stdin)
-  print(j.get('sha') or '')
-except Exception:
-  print('')
-PY
-<<<"$REMOTE_JSON")
+          REMOTE_JSON=$(curl -s -H "Authorization: ******" "$API?ref=$BRANCH" || true)
+          SHA=$(echo "$REMOTE_JSON" | python3 -c "import sys, json; j=json.load(sys.stdin) if not sys.stdin.isatty() else {}; print(j.get(\"sha\") or \"\")") || true
+
 
           # Build payload and upload via API
           python3 - <<PY | curl -s -X PUT -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d @- "$API"
