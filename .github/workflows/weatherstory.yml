@@ -15,4 +15,4 @@ jobs:
         with:
           python-version: '3.x'
       - name: Run monitor script
-        run: python .github/scripts/weatherstory_monitor.py
+        run: python scripts/weatherstory_monitor.py
