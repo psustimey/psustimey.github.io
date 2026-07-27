@@ -38,8 +38,20 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet -- public/weatherstory-manifest.json; then
             git add public/weatherstory-manifest.json
-            git commit -m "Update weatherstory manifest [skip ci]"
-            git push
+            git commit -m "Update weatherstory manifest [skip ci]" || true
+            # Ensure we have latest remote main and rebase local change onto it to avoid non-fast-forward
+            git fetch origin main --quiet
+            if git merge-base --is-ancestor origin/main HEAD; then
+              git push origin HEAD:main || echo "Push rejected (branch protection?)"
+            else
+              # Try to rebase local commit(s) onto origin/main; if this fails abort to avoid conflicts in runner
+              if git rebase origin/main; then
+                git push origin HEAD:main || echo "Push rejected after rebase (branch protection?)"
+              else
+                echo "Rebase failed; aborting push to avoid conflicts"
+                git rebase --abort || true
+              fi
+            fi
           else
             echo "No manifest changes to commit"
           fi
