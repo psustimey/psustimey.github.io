@@ -51,19 +51,17 @@ jobs:
 
 
           # Build payload and upload via API
-          python3 - <<PY | curl -s -X PUT -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d @- "$API"
-import json,base64,sys
-p='$FILEPATH'
-with open(p,'rb') as f:
-    content = base64.b64encode(f.read()).decode()
-payload = {
-  'message': 'Update weatherstory manifest [skip ci]',
-  'branch': '$BRANCH',
-  'content': content
-}
-sha = '$SHA'
-if sha:
-    payload['sha'] = sha
-print(json.dumps(payload))
+                    # Build payload and upload via GitHub API (avoid heredoc Python block)
+          CONTENT=$(python3 - <<PY
+import base64,sys
+print(base64.b64encode(open("$FILEPATH","rb").read()).decode())
 PY
+)
+          if [ -n "$SHA" ]; then
+            PAYLOAD=$(printf '%s' "{\"message\": \"Update weatherstory manifest [skip ci]\", \"branch\": \"$BRANCH\", \"content\": \"$CONTENT\", \"sha\": \"$SHA\"}")
+          else
+            PAYLOAD=$(printf '%s' "{\"message\": \"Update weatherstory manifest [skip ci]\", \"branch\": \"$BRANCH\", \"content\": \"$CONTENT\"}")
+          fi
+          curl -s -X PUT -H "Authorization: token $TOKEN" -H "Content-Type: application/json" -d "$PAYLOAD" "$API"
           echo "Upload step completed"
+
