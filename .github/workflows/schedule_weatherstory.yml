@@ -46,6 +46,7 @@ jobs:
           fi
           API="https://api.github.com/repos/$REPO/contents/$FILEPATH"
           # Read remote file metadata to get sha if it exists
+
           REMOTE_JSON=$(curl -s -H "Authorization: ******" "$API?ref=$BRANCH" || true)
           SHA=$(echo "$REMOTE_JSON" | python3 -c "import sys, json; j=json.load(sys.stdin) if not sys.stdin.isatty() else {}; print(j.get(\"sha\") or \"\")") || true
 
@@ -53,6 +54,8 @@ jobs:
           # Build payload and upload via API
                     # Build payload and upload via GitHub API (avoid heredoc Python block)
           CONTENT=$(python3 - <<PY
+          
+          main
 import base64,sys
 print(base64.b64encode(open("$FILEPATH","rb").read()).decode())
 PY
