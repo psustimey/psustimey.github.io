@@ -1,23 +1,11 @@
 {
-  "updatedAt": "2026-08-04T06:30:38+00:00",
+  "updatedAt": "2026-08-04T09:35:23+00:00",
   "urls": [
     {
       "url": "https://www.weather.gov/images/ctp/WxStory/WeatherStory1.png",
       "content_hash": null,
       "etag": null,
       "last_modified": "Mon, 03 Aug 2026 08:56:04 GMT"
-    },
-    {
-      "url": "https://www.weather.gov/images/ctp/WxStory/WeatherStory2.png",
-      "content_hash": null,
-      "etag": null,
-      "last_modified": "Mon, 03 Aug 2026 08:56:04 GMT"
-    },
-    {
-      "url": "https://www.weather.gov/images/ctp/WxStory/WeatherStory4.png",
-      "content_hash": null,
-      "etag": null,
-      "last_modified": "Mon, 03 Aug 2026 09:02:59 GMT"
     }
   ]
 }
