@@ -1,17 +1,11 @@
 {
-  "updatedAt": "2026-09-13T02:27:54+00:00",
+  "updatedAt": "2026-09-13T07:53:02+00:00",
   "urls": [
     {
       "url": "https://www.weather.gov/images/ctp/WxStory/WeatherStory2.png",
       "content_hash": null,
       "etag": null,
       "last_modified": "Sat, 12 Sep 2026 18:38:12 GMT"
-    },
-    {
-      "url": "https://www.weather.gov/images/ctp/WxStory/WeatherStory4.png",
-      "content_hash": null,
-      "etag": null,
-      "last_modified": "Fri, 11 Sep 2026 14:47:39 GMT"
     }
   ]
 }
